@@ -1,9 +1,11 @@
 ﻿[<AutoOpen>]
 module Scheme.Types
+open Scheme
 open System;
 open System.Collections.Generic;
 open System.Reflection
 open Microsoft.FSharp.Reflection
+open Microsoft.FSharp.Text.Lexing
 
 [<RequireQualifiedAccess>]
 [<StructuredFormatDisplay("{AsString}")>]
@@ -113,6 +115,28 @@ let rec makeExpr (value : obj) =
     |> List.ofSeq
     |> list
   | _ -> failwith "Cannot convert a %O into an Expr."
+
+let rec fromSExprView (v : Parser.SExprView) =
+  match v with
+  | Parser.NilV -> Nil
+  | Parser.TrueV -> True
+  | Parser.FalseV -> False
+  | Parser.IntV i -> Int i
+  | Parser.RealV r -> Real r
+  | Parser.StrV s -> Str s
+  | Parser.SymV s -> Sym s
+  | Parser.QuoteV qb -> ProperList [Sym "quote"; fromSExprView qb]
+  | Parser.QuasiquoteV qqb -> ProperList [Sym "quasiquote"; fromSExprView qqb]
+  | Parser.UnquoteV qb -> ProperList [Sym "unquote"; fromSExprView qb]
+  | Parser.ProperListV xs -> ProperList (List.map fromSExprView xs)
+  | Parser.DottedListV(xs, y) -> ImproperList (List.map fromSExprView xs)
+                                              (fromSExprView y)
+
+/// Parse a sequence of S-expressions
+let parse str =
+  LexBuffer<char>.FromString str
+  |> Parser.start Lexer.read
+  |> List.map fromSExprView
 
 type Expr with
   member e.ExprView =
