@@ -1,0 +1,73 @@
+%{
+
+/// Parse tree of an S-expression
+type SExprView =
+| NilV
+| FalseV
+| TrueV
+| IntV of int
+| RealV of float
+| StrV of string
+| SymV of string
+| QuoteV of SExprView
+| QuasiquoteV of SExprView
+| UnquoteV of SExprView
+| ProperListV of SExprView list
+| DottedListV of SExprView list * SExprView
+
+%}
+
+%start start
+
+%token OPEN_PAREN
+%token CLOSE_PAREN
+%token OPEN_BRACKET
+%token CLOSE_BRACKET
+%token DOT
+%token QUOTE
+%token QUASIQUOTE
+%token UNQUOTE
+%token TRUE
+%token FALSE
+%token <string> STRING
+%token <string> SYMBOL
+%token <int> INT
+%token <float> REAL
+%token EOF
+
+%type <SExprView list> start
+
+%%
+
+start:
+| proper_list_body EOF { $1 }
+
+// Left recursion is faster than right recursion.
+// http://epaperpress.com/lexandyacc/rec.html
+
+// What goes inside between ( and ):
+// List items or dotted list items
+list_body:
+| value DOT value { DottedListV([$1], $3) }
+| value DOT value DOT value { ProperListV [$3; $1; $5] }
+| proper_list_body DOT value { DottedListV($1, $3) }
+| proper_list_body { ProperListV $1 }
+
+proper_list_body:
+| { [] }
+| value { [$1] }
+| proper_list_body value { $1 @ [$2] }
+
+value:
+| OPEN_PAREN list_body CLOSE_PAREN { $2 }
+| OPEN_BRACKET list_body CLOSE_BRACKET { $2 }
+| FALSE { FalseV }
+| TRUE { TrueV }
+| STRING { StrV $1 }
+| SYMBOL { SymV $1 }
+| INT { IntV $1 }
+| REAL { RealV $1 }
+| QUOTE list_body { QuoteV $2 }
+| QUASIQUOTE list_body { QuasiquoteV $2 }
+| UNQUOTE list_body { UnquoteV $2 }
+

@@ -2,23 +2,28 @@
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{91BAC327-6FEE-4C35-B6FF-0CE227CC8873}</ProjectGuid>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{139FB78F-1D66-4892-A167-ABAE58A9365F}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Scheme</RootNamespace>
-    <AssemblyName>Scheme</AssemblyName>
+    <RootNamespace>Parser</RootNamespace>
+    <AssemblyName>Parser</AssemblyName>
+
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug</OutputPath>
     <ErrorReport>prompt</ErrorReport>
-    <Externalconsole>true</Externalconsole>
+    <ConsolePause>false</ConsolePause>
+
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
-    <Externalconsole>true</Externalconsole>
+    <ConsolePause>false</ConsolePause>
   </PropertyGroup>
+  <Target Name="BeforeBuild" BeforeTargets="Build">
+    <Message Text="BeforeBuild" />
+  </Target>
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core" />
@@ -30,21 +35,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <!-- XXX Must chmod +x packages/FsLexYacc.6.1.0/build/fslex.exe to execute the fslex in Unix
+         Or else I get "Native error= Cannot find the specified file" error message -->
+    <FsYacc Include="Parser.fsy">
+      <OtherFlags>--module Scheme.Parser</OtherFlags>
+    </FsYacc>
+    <FsLex Include="Lexer.fsl">
+      <OtherFlags>--unicode</OtherFlags>
+    </FsLex>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Types.fs" />
-    <Compile Include="EvalApply.fs" />
-    <Compile Include="ActivePatterns.fs" />
-    <Compile Include="Rules.fs" />
-    <Compile Include="Primitives.fs" />
+    <Compile Include="Parser.fs" />
+    <Compile Include="Lexer.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
+  <Import Project="..\packages\FsLexYacc.6.1.0\build\FsLexYacc.targets" Condition="Exists('..\packages\FsLexYacc.6.1.0\build\FsLexYacc.targets')" />
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Parser\Parser.fsproj">
-      <Project>{139FB78F-1D66-4892-A167-ABAE58A9365F}</Project>
-      <Name>Parser</Name>
-    </ProjectReference>
   </ItemGroup>
 </Project>
