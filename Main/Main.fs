@@ -74,8 +74,8 @@ let quotesAndQuasiquotes =
             (s"f", s"x"),
             s"y")
 
-[<EntryPoint>]
-let main argv =
+//[<EntryPoint>]
+let main0 argv =
   [arithmetic; logicConditional; factorial; fibTailRec;
    mutableVariablesAndScoping; quotesAndQuasiquotes]
   |> Seq.iter (fun expr ->
@@ -85,4 +85,11 @@ let main argv =
     |> printfn "%A"
     printfn "---------")
 
+  0
+
+open Microsoft.FSharp.Text.Lexing
+
+[<EntryPoint>]
+let main argv =
+  printfn "%A" <| parse argv.[0]
   0
