@@ -35,7 +35,8 @@ type SExprView =
 
 %%
 
-start: proper_list_body EOF { $1 }
+start:
+| proper_list_body EOF { $1 }
 
 // Left recursion is faster than right recursion.
 // http://epaperpress.com/lexandyacc/rec.html
@@ -43,10 +44,9 @@ start: proper_list_body EOF { $1 }
 // What goes inside between ( and ):
 // List items or dotted list items
 list_body:
-| { NilV }
+| value DOT value { DottedListV([$1], $3) }
 | value DOT value DOT value { ProperListV [$3; $1; $5] }
 | proper_list_body DOT value { DottedListV($1, $3) }
-| value { ProperListV [$1] }
 | proper_list_body { ProperListV $1 }
 
 proper_list_body:
