@@ -6,18 +6,18 @@ open System
 open Parser
 
 type Token =
-| OpenParen
-| CloseParen
-| OpenBracket
-| CloseBracket
-| Dot
-| Quote
-| Quasiquote
-| Unquote
-| StringLiteral of string
-| Symbol of string
-| Int of int
-| Real of float
+| OPEN_PAREN
+| CLOSE_PAREN
+| OPEN_BRACKET
+| CLOSE_BRACKET
+| DOT
+| QUOTE
+| QUASIQUOTE
+| UNQUOTE
+| STRING of string
+| SYMBOL of string
+| INT of int
+| REAL of float
 
 let lexeme = LexBuffer<Token>.LexemeString
 
@@ -116,42 +116,42 @@ and _fslex_read  _fslex_state lexbuf =
           )
   | 2 -> ( 
 # 44 "Lexer.fsl"
-                             Dot 
+                             DOT 
 # 120 "Lexer.fs"
           )
   | 3 -> ( 
 # 45 "Lexer.fsl"
-                             Quote 
+                             QUOTE 
 # 125 "Lexer.fs"
           )
   | 4 -> ( 
 # 46 "Lexer.fsl"
-                             Quasiquote 
+                             QUASIQUOTE 
 # 130 "Lexer.fs"
           )
   | 5 -> ( 
 # 47 "Lexer.fsl"
-                             Unquote 
+                             UNQUOTE 
 # 135 "Lexer.fs"
           )
   | 6 -> ( 
 # 48 "Lexer.fsl"
-                             OpenParen 
+                             OPEN_PAREN 
 # 140 "Lexer.fs"
           )
   | 7 -> ( 
 # 49 "Lexer.fsl"
-                             CloseParen 
+                             CLOSE_PAREN 
 # 145 "Lexer.fs"
           )
   | 8 -> ( 
 # 50 "Lexer.fsl"
-                             OpenBracket 
+                             OPEN_BRACKET 
 # 150 "Lexer.fs"
           )
   | 9 -> ( 
 # 51 "Lexer.fsl"
-                             CloseBracket 
+                             CLOSE_BRACKET 
 # 155 "Lexer.fs"
           )
   | 10 -> ( 
@@ -161,17 +161,17 @@ and _fslex_read  _fslex_state lexbuf =
           )
   | 11 -> ( 
 # 53 "Lexer.fsl"
-                             Int (int (lexeme lexbuf)) 
+                             INT (int (lexeme lexbuf)) 
 # 165 "Lexer.fs"
           )
   | 12 -> ( 
 # 54 "Lexer.fsl"
-                             Real (float (lexeme lexbuf)) 
+                             REAL (float (lexeme lexbuf)) 
 # 170 "Lexer.fs"
           )
   | 13 -> ( 
 # 55 "Lexer.fsl"
-                             Symbol (lexeme lexbuf) 
+                             SYMBOL (lexeme lexbuf) 
 # 175 "Lexer.fs"
           )
   | 14 -> ( 
@@ -191,7 +191,7 @@ and _fslex_readString cs inEscape _fslex_state lexbuf =
   | 1 -> ( 
 # 60 "Lexer.fsl"
                                   if inEscape then readString ("\""::cs) false lexbuf
-                                  else StringLiteral (List.rev cs |> String.concat "") 
+                                  else STRING (List.rev cs |> String.concat "") 
 # 195 "Lexer.fs"
           )
   | 2 -> ( 
