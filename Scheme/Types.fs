@@ -7,20 +7,8 @@ open System.Reflection
 open Microsoft.FSharp.Reflection
 open Microsoft.FSharp.Text.Lexing
 
-[<RequireQualifiedAccess>]
-[<StructuredFormatDisplay("{AsString}")>]
-/// Helper type to print out S-expressions in list form (Like S-expressions,
-/// except the brackets are square and there is semicolon between items.
-type ExprView =
-| Leaf of string
-| List of ExprView list with
-  member e.AsString =
-    match e with
-    | Leaf s -> box s
-    | List xs -> box xs
-
 /// An S-expression. Represents a Scheme program or a value
-[<StructuredFormatDisplay("{ExprView}")>]
+[<StructuredFormatDisplay("{AsSExprView}")>]
 type Expr =
 | Nil
 | True
@@ -129,8 +117,26 @@ let rec fromSExprView (v : Parser.SExprView) =
   | Parser.QuasiquoteV qqb -> ProperList [Sym "quasiquote"; fromSExprView qqb]
   | Parser.UnquoteV qb -> ProperList [Sym "unquote"; fromSExprView qb]
   | Parser.ProperListV xs -> ProperList (List.map fromSExprView xs)
-  | Parser.DottedListV(xs, y) -> ImproperList (List.map fromSExprView xs)
-                                              (fromSExprView y)
+  | Parser.DottedListV(xs, y) ->
+    ImproperList (List.map fromSExprView xs) (fromSExprView y)
+
+let rec toSExprView expr =
+  match expr with
+  | Nil -> Parser.NilV
+  | True -> Parser.TrueV
+  | False -> Parser.FalseV
+  | Int i -> Parser.IntV i
+  | Real r -> Parser.RealV r
+  | Str s -> Parser.StrV s
+  | Sym s -> Parser.SymV s
+  | ProperList [Sym "quote"; q] -> Parser.QuoteV (toSExprView q)
+  | ProperList [Sym "unquote"; uq] -> Parser.QuoteV (toSExprView uq)
+  | ProperList [Sym "quasiquote"; qq] -> Parser.QuoteV (toSExprView qq)
+  | ProperList xs -> Parser.ProperListV (List.map toSExprView xs)
+  | ImproperList(xs, y) ->
+    Parser.DottedListV (List.map toSExprView xs, toSExprView y)
+  | Cons(_, _) -> failwith "Impossible case: A list either proper or improper."
+  | Lambda(_, _, _) -> Parser.SymV "#<lambda>"
 
 /// Parse a sequence of S-expressions
 let parse str =
@@ -139,24 +145,7 @@ let parse str =
   |> List.map fromSExprView
 
 type Expr with
-  member e.ExprView =
-    match e with
-    | Nil -> ExprView.Leaf "()"
-    | True -> ExprView.Leaf "#t"
-    | False -> ExprView.Leaf "#f"
-    | Int i -> ExprView.Leaf (string i)
-    | Real r -> ExprView.Leaf (string r)
-    | Str s -> ExprView.Leaf (sprintf "%A" s)
-    | Sym s -> ExprView.Leaf s
-    | Cons(_, _) as lst ->
-      match lst with
-      | ProperList xs ->
-        ExprView.List (List.map (fun (x : Expr) -> x.ExprView) xs)
-      | ImproperList(xs, y) ->
-        let xs' = List.map (fun (x : Expr) -> x.ExprView) xs
-        ExprView.List (xs' @ [ExprView.Leaf "."; y.ExprView])
-      | _ -> failwith "Impossible"
-    | Lambda(_, _, _) -> ExprView.Leaf "(lambda ...)"
+  member e.AsSExprView = toSExprView e
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Env =
