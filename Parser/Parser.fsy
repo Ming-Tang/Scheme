@@ -1,5 +1,4 @@
 %{
-open Scheme.Lexer
 
 /// Parse tree of an S-expression
 type SExprView =

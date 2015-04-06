@@ -4,24 +4,9 @@ open Microsoft.FSharp.Text.Lexing
 open System
 open Parser
 
-type Token =
-| OPEN_PAREN
-| CLOSE_PAREN
-| OPEN_BRACKET
-| CLOSE_BRACKET
-| DOT
-| QUOTE
-| QUASIQUOTE
-| UNQUOTE
-| STRING of string
-| SYMBOL of string
-| INT of int
-| REAL of float
-| EOF
+let lexeme = LexBuffer<_>.LexemeString
 
-let lexeme = LexBuffer<Token>.LexemeString
-
-let inline newline (lexbuf: LexBuffer<Token>) =
+let inline newline (lexbuf: LexBuffer<_>) =
   lexbuf.StartPos <- lexbuf.StartPos.NextLine
 }
 
