@@ -1,6 +1,6 @@
-# 1 "Parser.fsl"
+# 1 "Lexer.fsl"
  
-module Scheme.Lexer
+module Scheme.Parser.Lexer
 open Microsoft.FSharp.Text.Lexing
 open System
 open Parser
@@ -24,7 +24,7 @@ let lexeme = LexBuffer<Token>.LexemeString
 let inline newline (lexbuf: LexBuffer<Token>) =
   lexbuf.StartPos <- lexbuf.StartPos.NextLine
 
-# 27 "Parser.fs"
+# 27 "Lexer.fs"
 let trans : uint16[] array = 
     [| 
     (* State 0 *)
@@ -105,105 +105,105 @@ and readString cs inEscape (lexbuf : Microsoft.FSharp.Text.Lexing.LexBuffer<_>) 
 and _fslex_read  _fslex_state lexbuf =
   match _fslex_tables.Interpret(_fslex_state,lexbuf) with
   | 0 -> ( 
-# 42 "Parser.fsl"
+# 42 "Lexer.fsl"
                              read lexbuf 
-# 110 "Parser.fs"
+# 110 "Lexer.fs"
           )
   | 1 -> ( 
-# 43 "Parser.fsl"
+# 43 "Lexer.fsl"
                              read lexbuf 
-# 115 "Parser.fs"
+# 115 "Lexer.fs"
           )
   | 2 -> ( 
-# 44 "Parser.fsl"
+# 44 "Lexer.fsl"
                              Dot 
-# 120 "Parser.fs"
+# 120 "Lexer.fs"
           )
   | 3 -> ( 
-# 45 "Parser.fsl"
+# 45 "Lexer.fsl"
                              Quote 
-# 125 "Parser.fs"
+# 125 "Lexer.fs"
           )
   | 4 -> ( 
-# 46 "Parser.fsl"
+# 46 "Lexer.fsl"
                              Quasiquote 
-# 130 "Parser.fs"
+# 130 "Lexer.fs"
           )
   | 5 -> ( 
-# 47 "Parser.fsl"
+# 47 "Lexer.fsl"
                              Unquote 
-# 135 "Parser.fs"
+# 135 "Lexer.fs"
           )
   | 6 -> ( 
-# 48 "Parser.fsl"
+# 48 "Lexer.fsl"
                              OpenParen 
-# 140 "Parser.fs"
+# 140 "Lexer.fs"
           )
   | 7 -> ( 
-# 49 "Parser.fsl"
+# 49 "Lexer.fsl"
                              CloseParen 
-# 145 "Parser.fs"
+# 145 "Lexer.fs"
           )
   | 8 -> ( 
-# 50 "Parser.fsl"
+# 50 "Lexer.fsl"
                              OpenBracket 
-# 150 "Parser.fs"
+# 150 "Lexer.fs"
           )
   | 9 -> ( 
-# 51 "Parser.fsl"
+# 51 "Lexer.fsl"
                              CloseBracket 
-# 155 "Parser.fs"
+# 155 "Lexer.fs"
           )
   | 10 -> ( 
-# 52 "Parser.fsl"
+# 52 "Lexer.fsl"
                              readString [] false lexbuf 
-# 160 "Parser.fs"
+# 160 "Lexer.fs"
           )
   | 11 -> ( 
-# 53 "Parser.fsl"
+# 53 "Lexer.fsl"
                              Int (int (lexeme lexbuf)) 
-# 165 "Parser.fs"
+# 165 "Lexer.fs"
           )
   | 12 -> ( 
-# 54 "Parser.fsl"
+# 54 "Lexer.fsl"
                              Real (float (lexeme lexbuf)) 
-# 170 "Parser.fs"
+# 170 "Lexer.fs"
           )
   | 13 -> ( 
-# 55 "Parser.fsl"
+# 55 "Lexer.fsl"
                              Symbol (lexeme lexbuf) 
-# 175 "Parser.fs"
+# 175 "Lexer.fs"
           )
   | 14 -> ( 
-# 56 "Parser.fsl"
+# 56 "Lexer.fsl"
                              failwithf "Unexpected char: '%s' Line: %d Column: %d" (lexeme lexbuf) (lexbuf.StartPos.Line+1) lexbuf.StartPos.Column 
-# 180 "Parser.fs"
+# 180 "Lexer.fs"
           )
   | _ -> failwith "read"
 (* Rule readString *)
 and _fslex_readString cs inEscape _fslex_state lexbuf =
   match _fslex_tables.Interpret(_fslex_state,lexbuf) with
   | 0 -> ( 
-# 59 "Parser.fsl"
+# 59 "Lexer.fsl"
                                   readString cs true lexbuf 
-# 189 "Parser.fs"
+# 189 "Lexer.fs"
           )
   | 1 -> ( 
-# 60 "Parser.fsl"
+# 60 "Lexer.fsl"
                                   if inEscape then readString ("\""::cs) false lexbuf
                                   else StringLiteral (List.rev cs |> String.concat "") 
-# 195 "Parser.fs"
+# 195 "Lexer.fs"
           )
   | 2 -> ( 
-# 62 "Parser.fsl"
+# 62 "Lexer.fsl"
                                   readString ((lexeme lexbuf) :: cs) false lexbuf 
-# 200 "Parser.fs"
+# 200 "Lexer.fs"
           )
   | 3 -> ( 
-# 63 "Parser.fsl"
+# 63 "Lexer.fsl"
                                   failwith "Unterminated string literal." 
-# 205 "Parser.fs"
+# 205 "Lexer.fs"
           )
   | _ -> failwith "readString"
 
-# 3000000 "Parser.fs"
+# 3000000 "Lexer.fs"

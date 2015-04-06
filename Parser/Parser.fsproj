@@ -37,11 +37,11 @@
   <ItemGroup>
     <!-- XXX Must chmod +x packages/FsLexYacc.6.1.0/build/fslex.exe to execute the fslex in Unix
          Or else I get "Native error= Cannot find the specified file" error message -->
-    <FsLex Include="Parser.fsl">
+    <FsLex Include="Lexer.fsl">
       <OtherFlags>--unicode</OtherFlags>
     </FsLex>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Parser.fs" />
+    <Compile Include="Lexer.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
   <Import Project="..\packages\FsLexYacc.6.1.0\build\FsLexYacc.targets" Condition="Exists('..\packages\FsLexYacc.6.1.0\build\FsLexYacc.targets')" />
