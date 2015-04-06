@@ -1,10 +1,10 @@
 # 1 "Lexer.fsl"
  
-module Scheme.Parser.Lexer
+module Scheme.Lexer
 open Microsoft.FSharp.Text.Lexing
 open System
 open Parser
-
+ 
 type Token =
 | OPEN_PAREN
 | CLOSE_PAREN

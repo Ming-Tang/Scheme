@@ -1,5 +1,5 @@
 ﻿{
-module Scheme.Parser.Lexer
+module Scheme.Lexer
 open Microsoft.FSharp.Text.Lexing
 open System
 open Parser
