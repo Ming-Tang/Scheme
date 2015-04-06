@@ -1,0 +1,64 @@
+﻿{
+module Scheme.Lexer
+open Microsoft.FSharp.Text.Lexing
+open System
+open Parser
+
+type Token =
+| OpenParen
+| CloseParen
+| OpenBracket
+| CloseBracket
+| Dot
+| Quote
+| Quasiquote
+| Unquote
+| StringLiteral of string
+| Symbol of string
+| Int of int
+| Real of float
+
+let lexeme = LexBuffer<Token>.LexemeString
+
+let inline newline (lexbuf: LexBuffer<Token>) =
+  lexbuf.StartPos <- lexbuf.StartPos.NextLine
+}
+
+let sign = ['-' '+']
+let digit = ['0'-'9']
+
+let int = sign? digit+
+let frac = '.' digit*
+let exp = ['e' 'E'] sign? digit+
+let real = sign? digit* frac? exp?
+
+let ws = [' ' '\t' '\r' '\n']+
+let comment = ';' [^'\r' '\n']*
+let sym = [^'(' ')' '[' ']' '{' '}' '"' ',' '\'' '`' ';' '#' '|' '\\']+
+// not ident: ( ) [ ] { } " , ' ` ; # | \
+
+rule read =
+  parse
+  | ws      { read lexbuf }
+  | comment { read lexbuf }
+  | '.'     { Dot }
+  | '\''    { Quote }
+  | '`'     { Quasiquote }
+  | ','     { Unquote }
+  | '('     { OpenParen }
+  | ')'     { CloseParen }
+  | '['     { OpenBracket }
+  | ']'     { CloseBracket }
+  | '"'     { readString [] false lexbuf }
+  | int     { Int (int (lexeme lexbuf)) }
+  | real    { Real (float (lexeme lexbuf)) }
+  | sym     { Symbol (lexeme lexbuf) }
+  | _       { failwithf "Unexpected char: '%s' Line: %d Column: %d" (lexeme lexbuf) (lexbuf.StartPos.Line+1) lexbuf.StartPos.Column }
+and readString cs inEscape =
+  parse
+  | '\\'         { readString cs true lexbuf }
+  | '"'          { if inEscape then readString ("\""::cs) false lexbuf
+                   else StringLiteral (List.rev cs |> String.concat "") }
+  | [^ '"' '\\'] { readString ((lexeme lexbuf) :: cs) false lexbuf }
+  | eof          { failwith "Unterminated string literal." }
+
