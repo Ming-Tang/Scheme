@@ -17,6 +17,7 @@ type Token =
 | SYMBOL of string
 | INT of int
 | REAL of float
+| EOF
 
 let lexeme = LexBuffer<Token>.LexemeString
 
@@ -53,6 +54,7 @@ rule read =
   | int     { INT (int (lexeme lexbuf)) }
   | real    { REAL (float (lexeme lexbuf)) }
   | sym     { SYMBOL (lexeme lexbuf) }
+  | eof     { EOF }
   | _       { failwithf "Unexpected char: '%s' Line: %d Column: %d" (lexeme lexbuf) (lexbuf.StartPos.Line+1) lexbuf.StartPos.Column }
 and readString cs inEscape =
   parse
