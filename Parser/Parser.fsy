@@ -3,6 +3,8 @@
 /// Parse tree of an S-expression
 type SExprView =
 | NilV
+| FalseV
+| TrueV
 | IntV of int
 | RealV of float
 | StrV of string
@@ -25,6 +27,8 @@ type SExprView =
 %token QUOTE
 %token QUASIQUOTE
 %token UNQUOTE
+%token TRUE
+%token FALSE
 %token <string> STRING
 %token <string> SYMBOL
 %token <int> INT
@@ -57,6 +61,8 @@ proper_list_body:
 value:
 | OPEN_PAREN list_body CLOSE_PAREN { $2 }
 | OPEN_BRACKET list_body CLOSE_BRACKET { $2 }
+| FALSE { FalseV }
+| TRUE { TrueV }
 | STRING { StrV $1 }
 | SYMBOL { SymV $1 }
 | INT { IntV $1 }

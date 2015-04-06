@@ -13,6 +13,10 @@ let inline newline (lexbuf: LexBuffer<_>) =
 let sign = ['-' '+']
 let digit = ['0'-'9']
 
+// TODO get word boundary right: for example, what about #tabc?
+let true = "#t"
+let false = "#f"
+
 let int = sign? digit+
 let frac = '.' digit*
 let exp = ['e' 'E'] sign? digit+
@@ -36,6 +40,8 @@ rule read =
   | '['     { OPEN_BRACKET }
   | ']'     { CLOSE_BRACKET }
   | '"'     { readString [] false lexbuf }
+  | true    { TRUE }
+  | false   { FALSE }
   | int     { INT (int (lexeme lexbuf)) }
   | real    { REAL (float (lexeme lexbuf)) }
   | sym     { SYMBOL (lexeme lexbuf) }
