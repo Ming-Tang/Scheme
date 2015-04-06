@@ -38,7 +38,7 @@ type SExprView =
 
 start: proper_list_body EOF { $1 }
 
-// Left recursion is faster than right recursion. 
+// Left recursion is faster than right recursion.
 // http://epaperpress.com/lexandyacc/rec.html
 
 // What goes inside between ( and ):
