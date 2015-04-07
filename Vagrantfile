@@ -72,5 +72,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     yes | certmgr -ssl -m https://go.microsoft.com
     yes | certmgr -ssl -m https://nugetgallery.blob.core.windows.net
     yes | certmgr -ssl -m https://nuget.org
+
+    # Build
+    cd /vagrant
+    nuget restore
+    xbuild
   end
 end
