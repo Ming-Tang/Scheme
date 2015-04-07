@@ -20,7 +20,7 @@ let false = "#f"
 let int = sign? digit+
 let frac = '.' digit*
 let exp = ['e' 'E'] sign? digit+
-let real = sign? digit* frac? exp?
+let real = sign? digit+ (frac exp?|exp)
 
 let ws = [' ' '\t' '\r' '\n']+
 let comment = ';' [^'\r' '\n']*
@@ -29,6 +29,7 @@ let sym = [^'(' ')' '[' ']' '{' '}' '"' ',' '\'' '`' ';' '#' '|' '\\' ' ' '\t' '
 
 rule read =
   parse
+  | eof     { EOF }
   | ws      { read lexbuf }
   | comment { read lexbuf }
   | '.'     { DOT }
@@ -42,10 +43,9 @@ rule read =
   | '"'     { readString [] false lexbuf }
   | true    { TRUE }
   | false   { FALSE }
-  | int     { INT (int (lexeme lexbuf)) }
   | real    { REAL (float (lexeme lexbuf)) }
+  | int     { INT (int (lexeme lexbuf)) }
   | sym     { SYMBOL (lexeme lexbuf) }
-  | eof     { EOF }
   | _       { failwithf "Unexpected char: '%s' Line: %d Column: %d" (lexeme lexbuf) (lexbuf.StartPos.Line+1) lexbuf.StartPos.Column }
 and readString cs inEscape =
   parse
