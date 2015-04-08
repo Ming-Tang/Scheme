@@ -9,16 +9,11 @@ module Eval =
   let eval { Primitives = prims
              EvalRules = rules } env0 expr0 =
 
-    let (|Primitive|_|) expr =
-      match expr with
-      | Sym s when Map.containsKey s prims -> Some prims.[s]
-      | _ -> None
-
     let (|SelfEvaluating|_|) expr =
       match expr with
       | Nil | False | True | Int _ | Real _ | Str _
-      | Primitive _ | Lambda(_, _, _) -> Some()
-      | Sym _ | Cons _  -> None
+      |  Lambda(_, _, _) -> Some()
+      | Prim _ | Sym _ | Cons _  -> None
 
     let (|RuleMatch|_|) expr =
       match expr with
@@ -37,6 +32,7 @@ module Eval =
     let lookup env sym =
       match Env.lookup sym env with
       | Some v -> v
+      | None when Map.containsKey sym prims -> Prim sym
       | None -> failwithf "Undefined variable: %s" sym
 
     let rec eval env expr =
@@ -58,7 +54,7 @@ module Eval =
         let args = List.zip argNames args |> Map.ofList
         let env' = Env.extend args env
         eval env' body
-      | Primitive prim -> prim args
+      | Prim prim -> prims.[prim] args
       | _ -> failwith "Not a function: %A" func
 
     eval env0 expr0

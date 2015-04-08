@@ -17,6 +17,7 @@ type Expr =
 | Real of float
 | Str of string
 | Sym of string
+| Prim of string
 | Cons of Expr * Expr
 | Lambda of env: Env * argList: string list * body: Expr
 /// An environment contains a symbol table, and a pointer to parent scope
@@ -129,6 +130,7 @@ let rec toSExprView expr =
   | Real r -> Parser.RealV r
   | Str s -> Parser.StrV s
   | Sym s -> Parser.SymV s
+  | Prim s -> Parser.SymV (sprintf "#<primitive:%s>" s)
   | ProperList [Sym "quote"; q] -> Parser.QuoteV (toSExprView q)
   | ProperList [Sym "unquote"; uq] -> Parser.QuoteV (toSExprView uq)
   | ProperList [Sym "quasiquote"; qq] -> Parser.QuoteV (toSExprView qq)
