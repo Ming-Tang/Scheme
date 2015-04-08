@@ -35,15 +35,18 @@ let inline numeric init intOp realOp : Prim =
   let op = numericOp intOp realOp
   List.fold op init
 
+/// Require two or more arguments
+let req2OrMore (Args2OrMore xs) = xs
+
 let add : Prim = List.fold (numericOp (+) (+)) (Int 0)
 let sub : Prim = List.reduce (numericOp (-) (-))
 let mul : Prim = List.fold (numericOp ( * ) ( * )) (Int 1)
 let div : Prim = List.reduce (numericOp (/) (/))
-let numEq : Prim = List.reduce (numericOpB (=) (=))
-let numLess : Prim = List.reduce (numericOpB (<) (<))
-let numGreater : Prim = List.reduce (numericOpB (>) (>))
-let numLessEq : Prim = List.reduce (numericOpB (<=) (<=))
-let numGreaterEq : Prim = List.reduce (numericOpB (>=) (>=))
+let numEq : Prim = req2OrMore >> List.reduce (numericOpB (=) (=))
+let numLess : Prim = req2OrMore >> List.reduce (numericOpB (<) (<))
+let numGreater : Prim = req2OrMore >> List.reduce (numericOpB (>) (>))
+let numLessEq : Prim = req2OrMore >> List.reduce (numericOpB (<=) (<=))
+let numGreaterEq : Prim = req2OrMore >> List.reduce (numericOpB (>=) (>=))
 
 let shortCircuit init op =
   let rec reduce args =
