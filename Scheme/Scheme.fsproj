@@ -47,4 +47,7 @@
       <Name>Parser</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="standard.scm" />
+  </ItemGroup>
 </Project>
