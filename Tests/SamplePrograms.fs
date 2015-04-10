@@ -48,7 +48,14 @@ type TestSamplePrograms() =
 
     for t in tests do t()
 
-    for result in results do
-      match result with
-      | None -> ()
-      | Some msg -> failwith msg
+    let passes, fails = List.partition Option.isNone <| List.ofSeq results
+    if not (Seq.isEmpty fails) then
+      let nPasses = List.length passes
+      let nFails = List.length fails
+
+      fails
+      |> Seq.map (Option.get >> sprintf "- %s")
+      |> String.concat "\n"
+      |> failwithf "%d passed, %d failed, %d total\n%s"
+                   nPasses nFails (nPasses + nFails)
+
