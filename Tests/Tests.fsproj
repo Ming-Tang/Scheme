@@ -25,11 +25,11 @@
     <Reference Include="FSharp.Core" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="FsUnit.NUnit">
       <HintPath>..\packages\FsUnit.1.3.0.1\Lib\Net40\FsUnit.NUnit.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -54,5 +54,15 @@
     <None Include="quotesAndQuasiquotes.scm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Parser\Parser.fsproj">
+      <Project>{139FB78F-1D66-4892-A167-ABAE58A9365F}</Project>
+      <Name>Parser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scheme\Scheme.fsproj">
+      <Project>{91BAC327-6FEE-4C35-B6FF-0CE227CC8873}</Project>
+      <Name>Scheme</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
