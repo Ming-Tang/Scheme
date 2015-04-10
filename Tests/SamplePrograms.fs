@@ -12,20 +12,23 @@ open Scheme.Eval
 type TestSamplePrograms() =
   [<Test>]
   member x.TestChurchEncoding() =
+    let tests = new List<unit -> unit>()
     let results = new List<string option>()
 
+    // TODO register tests, run tests last
     let checkExpect : EvalRule = fun eval env (ActivePatterns.Args2(a, b)) ->
-      try
-        let a = eval env a
-        let b = eval env b
-        if a <> b then
-          sprintf "check-expect failed.\nExpected: %A\nActual: %A" a b
-          |> Some
-          |> results.Add
-        else
-          results.Add(None)
-      with
-      | e -> results.Add(Some (sprintf "%A" e))
+      tests.Add <| fun() ->
+        try
+          let a = eval env a
+          let b = eval env b
+          if a <> b then
+            sprintf "check-expect failed.\nExpected: %A\nActual: %A" a b
+            |> Some
+            |> results.Add
+          else
+            results.Add(None)
+        with
+        | e -> results.Add(Some (sprintf "%A" e))
       Nil
 
     let standardConfig = {
@@ -42,6 +45,8 @@ type TestSamplePrograms() =
     ProperList (Sym "begin" :: expr)
     |> eval standardConfig env
     |> ignore
+
+    for t in tests do t()
 
     for result in results do
       match result with
