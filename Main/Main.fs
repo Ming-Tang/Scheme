@@ -3,15 +3,11 @@ open System
 open System.Collections.Generic
 open Scheme
 open Scheme.Eval
-
-let standardConfig = {
-  Primitives = Primitives.standardPrimitives
-  EvalRules = Rules.standardRules
-}
+open Scheme.Standard
 
 [<EntryPoint>]
 let main argv =
-  let eval = eval standardConfig
+  let eval = Standard.eval
   let rec loop env =
     eprintf "> "
     let line = Console.ReadLine()
@@ -23,7 +19,7 @@ let main argv =
       | "#quit" ->
         eprintfn ""
         Environment.Exit(0)
-      | "#reset" -> loop (Env.create())
+      | "#reset" -> loop (Standard.createEnv())
       | cmd when cmd.StartsWith("#") ->
         eprintfn "Unknown command: %A" cmd
         loop env
@@ -44,6 +40,6 @@ let main argv =
   eprintfn "#quit to end session, #reset to clear definitions"
   eprintfn ""
 
-  loop (Env.create())
+  loop (Standard.createEnv())
   0
 
