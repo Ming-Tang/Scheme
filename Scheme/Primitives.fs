@@ -38,15 +38,21 @@ let inline numeric init intOp realOp : Prim =
 /// Require two or more arguments
 let req2OrMore (Args2OrMore xs) = xs
 
+let chainOp bin =
+  fun (Args2OrMore xs) ->
+    Seq.windowed 2 xs
+    |> Seq.forall (fun ab -> bin ab.[0] ab.[1])
+    |> createBool
+
 let add : Prim = List.fold (numericOp (+) (+)) (Int 0)
 let sub : Prim = List.reduce (numericOp (-) (-))
 let mul : Prim = List.fold (numericOp ( * ) ( * )) (Int 1)
 let div : Prim = List.reduce (numericOp (/) (/))
-let numEq : Prim = req2OrMore >> List.reduce (numericOpB (=) (=))
-let numLess : Prim = req2OrMore >> List.reduce (numericOpB (<) (<))
-let numGreater : Prim = req2OrMore >> List.reduce (numericOpB (>) (>))
-let numLessEq : Prim = req2OrMore >> List.reduce (numericOpB (<=) (<=))
-let numGreaterEq : Prim = req2OrMore >> List.reduce (numericOpB (>=) (>=))
+let numEq : Prim = chainOp (numericOp' (=) (=))
+let numLess : Prim = chainOp (numericOp' (<) (<))
+let numGreater : Prim = chainOp (numericOp' (>) (>))
+let numLessEq : Prim = chainOp (numericOp' (<=) (<=))
+let numGreaterEq : Prim = chainOp (numericOp' (>=) (>=))
 
 let shortCircuit init op =
   let rec reduce args =
