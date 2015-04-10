@@ -90,6 +90,8 @@ let cdr : Prim = fun (Args1 x) ->
   | Cons(_, b) -> b
   | _ -> failwith "car: Not a cons."
 
+let list : Prim = ProperList
+
 let equals : Prim = fun (Args2(a, b)) -> createBool (a = b)
 
 let isNumber : Prim = fun (Args1 x) ->
@@ -164,6 +166,7 @@ let standardPrimitives : Primitives =
     "cdr", cdr
     "first", car
     "rest", cdr
+    "list", list
 
     "equal?", equals
     "boolean?", isBoolean
