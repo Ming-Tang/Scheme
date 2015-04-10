@@ -6,6 +6,9 @@ open Scheme
 let private expectingArgs n args =
   failwithf "Expecting %d args. Got %d args." n (List.length args)
 
+let private expectingMoreArgs n args =
+  failwithf "Expecting %d or more args. Got %d args." n (List.length args)
+
 let (|Args0|) args =
   match args with
   | [] -> ()
@@ -30,6 +33,11 @@ let (|Args4|) args =
   match args with
   | [a; b; c; d] -> a, b, c, d
   | _ -> expectingArgs 4 args
+
+let (|Args2OrMore|) args =
+  match args with
+  | [] | [_] -> expectingMoreArgs 2 args
+  | xs -> xs
 
 let (|ConsOnly|) args =
   match args with
