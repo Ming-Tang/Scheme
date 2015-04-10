@@ -48,6 +48,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="standard.scm" />
+    <EmbeddedResource Include="standard.scm">
+      <DeployService-Deploy>True</DeployService-Deploy>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

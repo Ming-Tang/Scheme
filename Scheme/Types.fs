@@ -77,6 +77,10 @@ let ImproperList xs y =
 
 let list = ProperList
 
+/// Construct a (begin ...) block from a list of exprs
+let Begin xs =
+  ProperList (Sym "begin" :: xs)
+
 /// Determine if a value should be considered true or false
 /// Only the symbol false is false
 let (|IsTrue|IsFalse|) expr =

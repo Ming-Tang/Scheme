@@ -1,6 +1,5 @@
 ﻿;; Scheme standard library
 ;; This file is compiled into Scheme.dll as an embedded resource
-;; with ID Scheme.standard.scm
 
 (define nil '())
 (define null '())
@@ -10,12 +9,11 @@
 
 (define first car)
 (define rest cdr)
-(define (list . xs) xs)
 
 (define (foldl f x0 xs)
   (if (empty? xs) x0
     (foldl f (f x0 (car xs))
-           (cdr xs)))
+           (cdr xs))))
 
 (define (foldr f x0 xs)
   (if (empty? xs) x0
