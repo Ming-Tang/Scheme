@@ -1,6 +1,8 @@
 ﻿module Scheme.Primitives
-open System;
-open System.Collections.Generic;
+open System
+open System.Collections.Generic
+open System.IO
+open System.Reflection
 open Scheme
 open Scheme.ActivePatterns
 
@@ -90,6 +92,8 @@ let cdr : Prim = fun (Args1 x) ->
   | Cons(_, b) -> b
   | _ -> failwith "car: Not a cons."
 
+let list : Prim = ProperList
+
 let equals : Prim = fun (Args2(a, b)) -> createBool (a = b)
 
 let isNumber : Prim = fun (Args1 x) ->
@@ -162,8 +166,7 @@ let standardPrimitives : Primitives =
     "cons", cons
     "car", car
     "cdr", cdr
-    "first", car
-    "rest", cdr
+    "list", list
 
     "equal?", equals
     "boolean?", isBoolean
@@ -181,12 +184,21 @@ let standardPrimitives : Primitives =
     "symbol?", isSymbol
   ]
 
-let standardSymbols =
-  Map.ofList [
-    "nil", Nil
-    "null", Nil
-    "empty", Nil
-    "false", False
-    "true", True
-  ]
+let standardSymbols : SymbolTable =
+  let env = Env.create()
+  let config = {
+    Config.Primitives = standardPrimitives
+    EvalRules = Rules.standardRules
+  }
+
+  use sr = new StreamReader(Assembly.GetExecutingAssembly()
+                                    .GetManifestResourceStream("standard.scm"))
+
+  sr.ReadToEnd()
+  |> Types.parse
+  |> Begin
+  |> Eval.eval config env
+  |> ignore
+
+  env.Symbols
 

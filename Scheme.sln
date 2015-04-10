@@ -7,6 +7,8 @@ Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Main", "Main\Main.fsproj", 
 EndProject
 Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Parser", "Parser\Parser.fsproj", "{139FB78F-1D66-4892-A167-ABAE58A9365F}"
 EndProject
+Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Tests", "Tests\Tests.fsproj", "{CF95F832-4C75-4CAE-88ED-C5168223364A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -25,5 +27,9 @@ Global
 		{9C91F947-6C94-4BE0-9AFA-22EFF26466A0}.Debug|x86.Build.0 = Debug|x86
 		{9C91F947-6C94-4BE0-9AFA-22EFF26466A0}.Release|x86.ActiveCfg = Release|x86
 		{9C91F947-6C94-4BE0-9AFA-22EFF26466A0}.Release|x86.Build.0 = Release|x86
+		{CF95F832-4C75-4CAE-88ED-C5168223364A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CF95F832-4C75-4CAE-88ED-C5168223364A}.Debug|x86.Build.0 = Debug|Any CPU
+		{CF95F832-4C75-4CAE-88ED-C5168223364A}.Release|x86.ActiveCfg = Release|Any CPU
+		{CF95F832-4C75-4CAE-88ED-C5168223364A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
