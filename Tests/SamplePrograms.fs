@@ -37,7 +37,7 @@ type TestSamplePrograms() =
     let path = "church.scm"
     let text = File.ReadAllText(path)
     let expr = parse text
-    let env = Env.create()
+    let env = Env.extend Primitives.standardSymbols <| Env.create()
 
     ProperList (Sym "begin" :: expr)
     |> eval standardConfig env
