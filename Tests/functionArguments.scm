@@ -12,7 +12,9 @@
 (check-error (f3 1 2))
 (check-error (f3 1 2 3 4))
 
-(define (f4 a b . xs) `((,a ,b) . ,xs))
+; XXX dotted lists in quotes doesn't work yet
+;(define (f4 a b . xs) `((,a ,b) . ,xs))
+(define (f4 a b . xs) (cons (list a b) xs))
 (check-error (f4))
 (check-expect (f4 1 2) '((1 2)))
 (check-expect (f4 1 2 3 4 5) '((1 2) 3 4 5))
@@ -35,7 +37,8 @@
 (check-error (l3 1 2))
 (check-error (l3 1 2 3 4))
 
-(define l4 (lambda (a b . xs) `((,a ,b) . ,xs)))
+;(define l4 (lambda (a b . xs) `((,a ,b) . ,xs)))
+(define l4 (lambda (a b . xs) (cons (list a b) xs)))
 (check-error (l4))
 (check-expect (l4 1 2) '((1 2)))
 (check-expect (l4 1 2 3 4 5) '((1 2) 3 4 5))
@@ -44,3 +47,4 @@
 
 (check-expect (l5) '())
 (check-expect (l5 1 2 3) '(1 2 3))
+

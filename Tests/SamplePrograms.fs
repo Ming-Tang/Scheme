@@ -56,7 +56,7 @@ type TestSamplePrograms() =
     let expr = parse text
     let env = Env.extend Primitives.standardSymbols <| Env.create()
 
-    ProperList (Sym "begin" :: expr)
+    Begin expr
     |> eval standardConfig env
     |> ignore
 
