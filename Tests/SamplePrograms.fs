@@ -10,12 +10,10 @@ open Scheme.Eval
 
 [<TestFixture>]
 type TestSamplePrograms() =
-  [<Test>]
-  member x.TestChurchEncoding() =
+  let run testName =
     let tests = new List<unit -> unit>()
     let results = new List<string option>()
 
-    // TODO register tests, run tests last
     let checkExpect : EvalRule = fun eval env (ActivePatterns.Args2(a, b)) ->
       tests.Add <| fun() ->
         try
@@ -31,13 +29,29 @@ type TestSamplePrograms() =
         | e -> results.Add(Some (sprintf "%A" e))
       Nil
 
+    let checkError : EvalRule = fun eval env (ActivePatterns.Args1(a)) ->
+      tests.Add <| fun() ->
+        try
+          eval env a |> ignore
+          results.Add(Some "check-error: No error was raised.")
+        with
+        | e -> results.Add(None)
+      Nil
+
+    let rules =
+      seq {
+        yield! Seq.map (fun (KeyValue(k, v)) -> k, v) Rules.standardRules
+        yield "check-expect", checkExpect
+        yield "check-error", checkError
+      }
+      |> Map.ofSeq
+
     let standardConfig = {
       Primitives = Primitives.standardPrimitives
-      EvalRules = Map.add "check-expect" checkExpect Rules.standardRules
+      EvalRules = rules
     }
 
-    // for path in Directory.EnumerateFiles(".") do
-    let path = "church.scm"
+    let path = testName + ".scm"
     let text = File.ReadAllText(path)
     let expr = parse text
     let env = Env.extend Primitives.standardSymbols <| Env.create()
@@ -58,4 +72,10 @@ type TestSamplePrograms() =
       |> String.concat "\n"
       |> failwithf "%d passed, %d failed, %d total\n%s"
                    nPasses nFails (nPasses + nFails)
+
+  [<Test>]
+  member x.TestChurchEncoding() = run "church"
+
+  [<Test>]
+  member x.TestFunctionArguments() = run "functionArguments"
 
