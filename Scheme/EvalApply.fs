@@ -12,7 +12,7 @@ module Eval =
     let (|SelfEvaluating|_|) expr =
       match expr with
       | Nil | False | True | Int _ | Real _ | Str _
-      |  Lambda(_, _, _) -> Some()
+      | Lambda(_, _, _, _) -> Some()
       | Prim _ | Sym _ | Cons _  -> None
 
     let (|RuleMatch|_|) expr =
@@ -35,6 +35,27 @@ module Eval =
       | None when Map.containsKey sym prims -> Prim sym
       | None -> failwithf "Undefined variable: %s" sym
 
+    let matchArgs (argNames, rest) args =
+      let arityMismatch n =
+        failwithf "Arity mismatch: Expecting %d args but got %d."
+                  (List.length argNames) n
+
+      let rec matchArgs' n map argNames args =
+        match argNames, args with
+        | (argName :: argNames'), (arg :: args') ->
+          let map' = Map.add argName arg map
+          matchArgs' (n + 1) map' argNames' args'
+        | [], args ->
+          match rest, args with
+          | None, [] -> map
+          | None, _ -> arityMismatch (n + List.length args)
+          | Some rest, _ ->
+            Map.add rest (ProperList args) map
+        | [], (_ :: _)
+        | (_ :: _), [] -> arityMismatch n
+
+      matchArgs' 0 Map.empty argNames args
+
     let rec eval env expr =
       match expr with
       | SelfEvaluating -> expr
@@ -47,12 +68,9 @@ module Eval =
       let func = eval env func
       let args = List.map (eval env) args
       match func with
-      | Lambda(env, argNames, body) ->
-        if List.length argNames <> List.length args then
-          failwithf "Argument count mismatch. Expecting %d but got %d."
-            (List.length argNames) (List.length args)
-        let args = List.zip argNames args |> Map.ofList
-        let env' = Env.extend args env
+      | Lambda(env, argNames, rest, body) ->
+        let argMap = matchArgs (argNames, rest) args
+        let env' = Env.extend argMap env
         eval env' body
       | Prim prim -> prims.[prim] args
       | _ -> failwith "Not a function: %A" func

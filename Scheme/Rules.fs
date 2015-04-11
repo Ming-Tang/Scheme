@@ -14,17 +14,23 @@ let evalIf : EvalRule = fun eval env (Args3 (Eval eval env cond,
   | IsFalse -> eval env right
 
 let evalLambda : EvalRule =
-  fun eval env (ConsOnly (SymList argFormat, (Body body))) ->
-    Lambda(env, argFormat, body)
+  fun eval env (ConsOnly (argFormat, (Body body))) ->
+    match argFormat with
+    | ProperImproperList(SymList args, None) ->
+      Lambda(env, args, None, body)
+    | ProperImproperList(SymList args, Some (Sym rest)) ->
+      Lambda(env, args, Some rest, body)
+    | ProperImproperList(_, _) ->
+      failwithf "Incorrect argument format. Must be a list of symbols %s"
+                "or a list of symbols dot another symbol"
 
 let rec evalDefine : EvalRule = fun eval env args ->
   match args with
   | [Sym var; Eval eval env value] ->
     Env.var var value env
     Nil
-  | ProperList ((Sym func) :: args) :: (Body body) ->
-    evalDefine eval env [Sym func
-                         (evalLambda eval env [list args; body])]
+  | Cons(Sym func, args) :: Body body ->
+    evalDefine eval env [Sym func; (evalLambda eval env [args; body])]
   | _ -> failwithf "Must be in the form of (define var value) %s"
                    "or (define (func args...) body...)"
 

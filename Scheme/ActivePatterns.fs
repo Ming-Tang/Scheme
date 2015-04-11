@@ -44,16 +44,18 @@ let (|ConsOnly|) args =
   | [] -> failwith "Expecting an non-empty list"
   | x :: xs -> x, xs
 
-let (|SymList|) arg =
-  let error() = failwithf "Not a list of symbols: %A" arg
-  match arg with
-  | ProperList ss ->
-    ss
-    |> List.map (fun s ->
-      match s with
-      | Sym s -> s
-      | _ -> error())
-  | _ -> error()
+let (|SymList|_|) ss =
+  let allSome f xs =
+    let xs' = List.map f xs
+    if List.forall Option.isSome xs' then
+      List.map Option.get xs' |> Some
+    else
+      None
+  ss
+  |> allSome (fun s ->
+    match s with
+    | Sym s -> Some s
+    | _ -> None)
 
 let (|Eval|) (eval : Eval) env expr =
   eval env expr

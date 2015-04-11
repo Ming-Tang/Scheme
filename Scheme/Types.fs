@@ -19,7 +19,7 @@ type Expr =
 | Sym of string
 | Prim of string
 | Cons of Expr * Expr
-| Lambda of env: Env * argList: string list * body: Expr
+| Lambda of env: Env * argList: string list * dot : string option * body: Expr
 /// An environment contains a symbol table, and a pointer to parent scope
 and [<ReferenceEquality>] Env = {
   Symbols : SymbolTable
@@ -64,7 +64,7 @@ let ProperList xs =
   List.foldBack (fun a b -> Cons(a, b)) xs Nil
 
 /// Match an improper list, which is a cons that leads to something
-/// other than nil
+/// other than nil.
 let rec (|ImproperList|_|) expr =
   match expr with
   | Cons (x, ImproperList(xs, y)) -> Some(x :: xs, y)
@@ -76,6 +76,18 @@ let ImproperList xs y =
   List.foldBack (fun a b -> Cons(a, b)) xs y
 
 let list = ProperList
+
+/// Decompose a list into proper and improper parts
+let decomposeList xs =
+  let rec decomposeList' xs ys =
+    match xs with
+    | Nil -> ys, None
+    | Cons(a, xs') -> decomposeList' xs' (ys @ [a])
+    | x -> ys, Some x
+  decomposeList' xs []
+
+let (|ProperImproperList|) xs =
+  decomposeList xs
 
 /// Construct a (begin ...) block from a list of exprs
 let Begin xs =
@@ -142,7 +154,7 @@ let rec toSExprView expr =
   | ImproperList(xs, y) ->
     Parser.DottedListV (List.map toSExprView xs, toSExprView y)
   | Cons(_, _) -> failwith "Impossible case: A list either proper or improper."
-  | Lambda(_, _, _) -> Parser.SymV "#<lambda>"
+  | Lambda(_, _, _, _) -> Parser.SymV "#<lambda>"
 
 /// Parse a sequence of S-expressions
 let parse str =
