@@ -46,6 +46,8 @@ type TestSamplePrograms() =
       }
       |> Map.ofSeq
 
+    failwith "hello"
+
     let standardConfig = {
       Primitives = Primitives.standardPrimitives
       EvalRules = rules
