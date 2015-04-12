@@ -12,7 +12,7 @@ module Eval =
     let (|SelfEvaluating|_|) expr =
       match expr with
       | Nil | False | True | Int _ | Real _ | Str _
-      | Lambda(_, _, _, _) -> Some()
+      | Lambda(_, _, _, _) -> Some(codeToData expr)
       | Prim _ | Sym _ | Cons _  -> None
 
     let (|RuleMatch|_|) expr =
@@ -58,7 +58,7 @@ module Eval =
 
     let rec eval env expr =
       match expr with
-      | SelfEvaluating -> expr
+      | SelfEvaluating expr -> expr
       | Sym x -> lookup env x
       | RuleMatch (name, args, rule) -> rule eval env args
       | Apply (func, args) -> apply env func args

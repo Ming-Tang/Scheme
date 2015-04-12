@@ -7,9 +7,15 @@ open System.Reflection
 open Microsoft.FSharp.Reflection
 open Microsoft.FSharp.Text.Lexing
 
+type CodeOrData = interface end
+/// Expression represents code
+type Code = Code with interface CodeOrData
+/// Expression represents data
+type Data = Data with interface CodeOrData
+
 /// An S-expression. Represents a Scheme program or a value
 [<StructuredFormatDisplay("{AsSExprView}")>]
-type Expr =
+type 'CorD Expr when 'CorD :> CodeOrData =
 | Nil
 | True
 | False
@@ -18,22 +24,23 @@ type Expr =
 | Str of string
 | Sym of string
 | Prim of string
-| Cons of Expr * Expr
-| Lambda of env: Env * argList: string list * dot : string option * body: Expr
+| Cons of Expr<'CorD> * Expr<'CorD>
+| Lambda of env: Env * argList: string list
+          * dot : string option * body: Code Expr
 /// An environment contains a symbol table, and a pointer to parent scope
 and [<ReferenceEquality>] Env = {
   Symbols : SymbolTable
   Parent : Env option
 }
 /// A mutable lookup table of variables
-and SymbolTable = IDictionary<string, Expr>
+and SymbolTable = IDictionary<string, Data Expr>
 
 /// Type of the eval function
-type Eval = Env -> Expr -> Expr
+type Eval = Env -> Code Expr -> Data Expr
 
 /// An evaluation rule takes an eval procedure, an environment and an
 /// expression, and evaluates it, returning the evaluated expression
-type EvalRule = Eval -> Env -> Expr list -> Expr
+type EvalRule = Eval -> Env -> Code Expr list -> Data Expr
 
 /// A lookup table of evaluation rules. The key is the name of the rule (
 /// matches based on the first symbol of a list, and the value is a function
@@ -42,7 +49,7 @@ type EvalRule = Eval -> Env -> Expr list -> Expr
 type EvalRules = Map<string, EvalRule>
 
 /// A primitive function
-type Prim = Expr list -> Expr
+type Prim = Data Expr list -> Data Expr
 
 /// A lookup of primitives
 type Primitives = Map<string, Prim>
@@ -109,7 +116,7 @@ let rec makeExpr (value : obj) =
   match value with
   | null -> Nil
   | :? unit -> Nil
-  | :? Expr as e -> e
+  | :? Expr<_> as e -> e
   | :? bool as b -> if b then True else False
   | :? int as i -> Int i
   | :? float as r -> Real r
@@ -155,6 +162,24 @@ let rec toSExprView expr =
     SExprView.DottedListV (List.map toSExprView xs, toSExprView y)
   | Cons(_, _) -> failwith "Impossible case: A list either proper or improper."
   | Lambda(_, _, _, _) -> SExprView.SymV "#<lambda>"
+
+/// Convert an expression from one form (code or data) to another
+let rec convert<'A, 'B when 'A :> CodeOrData
+                       and 'B :> CodeOrData> expr : 'B Expr =
+  match expr : 'A Expr with
+  | Nil -> Nil
+  | True -> True
+  | False -> False
+  | Int i -> Int i
+  | Real f -> Real f
+  | Str s -> Str s
+  | Sym s -> Sym s
+  | Prim p -> Prim p
+  | Cons(a, b) -> Cons(convert<'A, 'B> a, convert<'A, 'B> b)
+  | Lambda(e, a, d, b) -> Lambda(e, a, d, b)
+
+let inline codeToData expr = convert<Code, Data> expr
+let inline dataToCode expr = convert<Data, Code> expr
 
 /// Parse a sequence of S-expressions
 let parse str =

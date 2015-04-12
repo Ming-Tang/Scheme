@@ -30,7 +30,9 @@ let rec evalDefine : EvalRule = fun eval env args ->
     Env.var var value env
     Nil
   | Cons(Sym func, args) :: Body body ->
-    evalDefine eval env [Sym func; (evalLambda eval env [args; body])]
+    let defineArgs : Code Expr list =
+      [Sym func; dataToCode (evalLambda eval env [args; body])]
+    evalDefine eval env defineArgs
   | _ -> failwithf "Must be in the form of (define var value) %s"
                    "or (define (func args...) body...)"
 
@@ -39,7 +41,7 @@ let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
   Env.set var value env
   Nil
 
-let evalQuote : EvalRule = fun eval env (Args1 x) -> x
+let evalQuote : EvalRule = fun eval env (Args1 x) -> codeToData x
 
 let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
   let rec evalQQ x =
@@ -48,7 +50,7 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
       eval env y
     | ProperList xs ->
       list (List.map evalQQ xs)
-    | _ -> x
+    | _ -> codeToData x
   evalQQ x
 
 let standardRules =
