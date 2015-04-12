@@ -35,6 +35,7 @@
   <ItemGroup>
     <!-- XXX Must chmod +x packages/FsLexYacc.6.1.0/build/fslex.exe to execute the fslex in Unix
          Or else I get "Native error= Cannot find the specified file" error message -->
+    <Compile Include="SExprView.fs" />
     <FsYacc Include="Parser.fsy">
       <OtherFlags>--module Scheme.Parser</OtherFlags>
     </FsYacc>

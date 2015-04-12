@@ -20,5 +20,5 @@ $ mono ./Main/bin/Debug/Main.exe
 - [ ] Separate code and data types for Expr using phantom types
 - [ ] More robust interactive console
 - [ ] `define-macro` and `gensym`
-- [ ] Implement pretty-printing
+- [X] Implement pretty-printing
 - [x] Implement a parser
