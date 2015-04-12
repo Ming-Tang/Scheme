@@ -1,45 +1,32 @@
 ﻿module Scheme.Main
 open System
+open System.IO
 open System.Collections.Generic
 open Scheme
 open Scheme.Eval
 open Scheme.Standard
+open Microsoft.FSharp.Text.Lexing
+
+let readAndParse() =
+  LexBuffer<char>.FromTextReader Console.In
+  |> Parser.start Lexer.read
+  |> List.map fromSExprView
 
 [<EntryPoint>]
 let main argv =
   let eval = Standard.eval
   let rec loop env =
-    eprintf "> "
-    let line = Console.ReadLine()
-    if line = null then
-      eprintfn ""
-    else
-      match line.Trim() with
-      | null -> ()
-      | "#quit" ->
-        eprintfn ""
-        Environment.Exit(0)
-      | "#reset" -> loop (Standard.createEnv())
-      | cmd when cmd.StartsWith("#") ->
-        eprintfn "Unknown command: %A" cmd
-        loop env
-      | expr ->
-        try
-          let parsed = Types.parse expr
-          let block = ProperList (Sym "begin" :: parsed)
-          let result = eval env block
-          if result <> Nil then
-            printfn "%A" result
-        with
-        | e ->
-          eprintfn "%s" e.Message
-          eprintfn "%s" e.StackTrace
-        loop env
-
-  eprintfn "Scheme REPL"
-  eprintfn "#quit to end session, #reset to clear definitions"
-  eprintfn ""
+    try
+      let parsed = readAndParse()
+      let block = Begin parsed
+      let result = eval env block
+      if result <> Nil then
+        printfn "%A" result
+      loop env
+    with
+    | e ->
+      printfn "%s" e.Message
+      loop env
 
   loop (Standard.createEnv())
   0
-
