@@ -11,9 +11,9 @@ module Eval =
 
     let (|SelfEvaluating|_|) expr =
       match expr with
-      | Nil | False | True | Int _ | Real _ | Str _
+      | False | True | Int _ | Real _ | Str _
       | Lambda(_, _, _, _) -> Some(codeToData expr)
-      | Prim _ | Sym _ | Cons _  -> None
+      | Prim _ | Sym _ | Cons _ | Nil  -> None
 
     let (|RuleMatch|_|) expr =
       match expr with
@@ -73,7 +73,7 @@ module Eval =
         let env' = Env.extend argMap env
         eval env' body
       | Prim prim -> prims.[prim] args
-      | _ -> failwith "Not a function: %A" func
+      | _ -> failwithf "Not a function: %A" func
 
     eval env0 expr0
 
