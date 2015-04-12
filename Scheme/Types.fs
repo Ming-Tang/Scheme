@@ -1,8 +1,8 @@
 ﻿[<AutoOpen>]
 module Scheme.Types
 open Scheme
-open System;
-open System.Collections.Generic;
+open System
+open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Reflection
 open Microsoft.FSharp.Text.Lexing
@@ -121,40 +121,40 @@ let rec makeExpr (value : obj) =
     |> list
   | _ -> failwith "Cannot convert a %O into an Expr."
 
-let rec fromSExprView (v : Parser.SExprView) =
+let rec fromSExprView (v : SExprView) =
   match v with
-  | Parser.NilV -> Nil
-  | Parser.TrueV -> True
-  | Parser.FalseV -> False
-  | Parser.IntV i -> Int i
-  | Parser.RealV r -> Real r
-  | Parser.StrV s -> Str s
-  | Parser.SymV s -> Sym s
-  | Parser.QuoteV qb -> ProperList [Sym "quote"; fromSExprView qb]
-  | Parser.QuasiquoteV qqb -> ProperList [Sym "quasiquote"; fromSExprView qqb]
-  | Parser.UnquoteV qb -> ProperList [Sym "unquote"; fromSExprView qb]
-  | Parser.ProperListV xs -> ProperList (List.map fromSExprView xs)
-  | Parser.DottedListV(xs, y) ->
+  | SExprView.NilV -> Nil
+  | SExprView.TrueV -> True
+  | SExprView.FalseV -> False
+  | SExprView.IntV i -> Int i
+  | SExprView.RealV r -> Real r
+  | SExprView.StrV s -> Str s
+  | SExprView.SymV s -> Sym s
+  | SExprView.QuoteV qb -> ProperList [Sym "quote"; fromSExprView qb]
+  | SExprView.QuasiquoteV qqb -> ProperList [Sym "quasiquote"; fromSExprView qqb]
+  | SExprView.UnquoteV qb -> ProperList [Sym "unquote"; fromSExprView qb]
+  | SExprView.ProperListV xs -> ProperList (List.map fromSExprView xs)
+  | SExprView.DottedListV(xs, y) ->
     ImproperList (List.map fromSExprView xs) (fromSExprView y)
 
 let rec toSExprView expr =
   match expr with
-  | Nil -> Parser.NilV
-  | True -> Parser.TrueV
-  | False -> Parser.FalseV
-  | Int i -> Parser.IntV i
-  | Real r -> Parser.RealV r
-  | Str s -> Parser.StrV s
-  | Sym s -> Parser.SymV s
-  | Prim s -> Parser.SymV (sprintf "#<primitive:%s>" s)
-  | ProperList [Sym "quote"; q] -> Parser.QuoteV (toSExprView q)
-  | ProperList [Sym "unquote"; uq] -> Parser.QuoteV (toSExprView uq)
-  | ProperList [Sym "quasiquote"; qq] -> Parser.QuoteV (toSExprView qq)
-  | ProperList xs -> Parser.ProperListV (List.map toSExprView xs)
+  | Nil -> SExprView.NilV
+  | True -> SExprView.TrueV
+  | False -> SExprView.FalseV
+  | Int i -> SExprView.IntV i
+  | Real r -> SExprView.RealV r
+  | Str s -> SExprView.StrV s
+  | Sym s -> SExprView.SymV s
+  | Prim s -> SExprView.SymV (sprintf "#<primitive:%s>" s)
+  | ProperList [Sym "quote"; q] -> SExprView.QuoteV (toSExprView q)
+  | ProperList [Sym "unquote"; uq] -> SExprView.QuoteV (toSExprView uq)
+  | ProperList [Sym "quasiquote"; qq] -> SExprView.QuoteV (toSExprView qq)
+  | ProperList xs -> SExprView.ProperListV (List.map toSExprView xs)
   | ImproperList(xs, y) ->
-    Parser.DottedListV (List.map toSExprView xs, toSExprView y)
+    SExprView.DottedListV (List.map toSExprView xs, toSExprView y)
   | Cons(_, _) -> failwith "Impossible case: A list either proper or improper."
-  | Lambda(_, _, _, _) -> Parser.SymV "#<lambda>"
+  | Lambda(_, _, _, _) -> SExprView.SymV "#<lambda>"
 
 /// Parse a sequence of S-expressions
 let parse str =
