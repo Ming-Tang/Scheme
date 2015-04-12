@@ -17,7 +17,7 @@ $ mono ./Main/bin/Debug/Main.exe
 - [ ] A bigger standard library
 - [ ] Unit tests
 - [ ] Support loading files
-- [ ] Separate code and data types for Expr using phantom types
+- [X] Separate code and data types for Expr using phantom types
 - [ ] More robust interactive console
 - [ ] `define-macro` and `gensym`
 - [X] Implement pretty-printing
