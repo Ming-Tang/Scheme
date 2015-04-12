@@ -22,7 +22,8 @@ let frac = '.' digit*
 let exp = ['e' 'E'] sign? digit+
 let real = sign? digit+ (frac exp?|exp)
 
-let ws = [' ' '\t' '\r' '\n']+
+let nl = ('\n' | '\r' '\n')
+let ws = [' ' '\t']+
 let comment = ';' [^'\r' '\n']*
 let sym = [^'(' ')' '[' ']' '{' '}' '"' ',' '\'' '`' ';' '#' '|' '\\' ' ' '\t' '\r' '\n']+
 // not ident: ( ) [ ] { } " , ' ` ; # | \
@@ -32,6 +33,7 @@ rule read =
   | eof     { EOF }
   | ws      { read lexbuf }
   | comment { read lexbuf }
+  | nl      { newline lexbuf; read lexbuf }
   | '.'     { DOT }
   | '\''    { QUOTE }
   | '`'     { QUASIQUOTE }

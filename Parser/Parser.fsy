@@ -25,8 +25,7 @@ open Scheme.SExprView
 %%
 
 start:
-  EOF { [] }
-| nonempty_proper_list_body EOF { $1 }
+| value { [$1] }
 
 // Left recursion is faster than right recursion.
 // http://epaperpress.com/lexandyacc/rec.html
