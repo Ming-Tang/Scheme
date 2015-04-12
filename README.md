@@ -14,11 +14,24 @@ $ mono ./Main/bin/Debug/Main.exe
 ```
 
 ## TODO
-- [ ] A bigger standard library
-- [ ] Unit tests
-- [ ] Support loading files
-- [X] Separate code and data types for Expr using phantom types
-- [ ] More robust interactive console
-- [ ] `define-macro` and `gensym`
-- [X] Implement pretty-printing
-- [x] Implement a parser
+Make sure everything in the SICP are runnable, except mutable `cons` need extra
+changes.
+
+- [ ] Refactor primitives and evaluation rules
+    - [ ] Evaluation rules should be able to understand dotted lists
+    - [ ] Define translation rules (required for macros)
+- [ ] `define-macro`, `gensym`: Add evaluation rules while running
+- [ ] `error`
+- [ ] `cond`
+- [ ] `display`, `write`, `print`
+- [ ] `mcons`: mutable cons cells
+- [ ] `let`, `local`
+- [ ] `unset!`
+- [ ] `load` for loading files
+- [ ] Scope manipulation: The scope/env attached to a lambda
+    - [ ] Create scope
+    - [ ] View and modify scope variables
+    - [ ] Manipulate scope pointers
+    - [ ] Manipulate scopes of lambdas
+    - [ ] Apply function on scope
+
