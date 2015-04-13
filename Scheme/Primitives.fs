@@ -69,6 +69,8 @@ let not' : Prim = fun (Args1 x) ->
   | IsTrue -> False
   | IsFalse -> True
 
+// TODO make logical operators evaluation rules
+
 let and' : Prim = shortCircuit False (fun a b ->
   match a with
   | IsTrue -> b()
@@ -146,6 +148,11 @@ let isSymbol : Prim = fun (Args1 x) ->
   | Sym _ -> True
   | _ -> False
 
+let isLambda : Prim = fun (Args1 x) ->
+  match x with
+  | Prim _ | Lambda(_, _, _, _) -> True
+  | _ -> False
+
 let standardPrimitives : Primitives =
   Map.ofList [
     "+", add
@@ -186,6 +193,8 @@ let standardPrimitives : Primitives =
     "null?", isNil
     "string?", isString
     "symbol?", isSymbol
+    "lambda?", isLambda
+    "proc?", isLambda
   ]
 
 let standardSymbols : SymbolTable =
