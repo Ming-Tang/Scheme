@@ -166,9 +166,13 @@ let standardPrimitives : Primitives =
     "cons", cons
     "car", car
     "cdr", cdr
+    "first", car
+    "rest", cdr
     "list", list
 
     "equal?", equals
+    "eqv?", equals
+    "eq?", equals
     "boolean?", isBoolean
     "number?", isNumber
     "real?", isReal
