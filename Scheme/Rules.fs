@@ -41,6 +41,10 @@ let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
   Env.set var value env
   Nil
 
+let evalUnset : EvalRule = fun eval env (Args1 (SymOnly var)) ->
+  Env.delete var env |> ignore
+  Nil
+
 let evalQuote : EvalRule = fun eval env (Args1 x) -> codeToData x
 
 let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
@@ -92,6 +96,7 @@ let standardRules =
     "lambda", evalLambda
     "define", evalDefine
     "set!", evalSet
+    "unset!", evalUnset
     "and", evalAnd
     "or", evalOr
     "let", evalLet
