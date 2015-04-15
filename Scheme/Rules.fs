@@ -53,6 +53,17 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
     | _ -> codeToData x
   evalQQ x
 
+let translation f : EvalRule = fun eval env args ->
+  f args |> eval env
+
+let if' a b c = ProperList [ Sym "if"; a; b; c ]
+
+let evalAnd : EvalRule = translation <| fun xs ->
+  List.foldBack (fun a b -> if' a b False) xs True
+
+let evalOr : EvalRule = translation <| fun xs ->
+  List.fold (fun a b -> if' a True b) False xs
+
 let standardRules =
   Map.ofList [
     "begin", evalBegin
@@ -60,6 +71,8 @@ let standardRules =
     "lambda", evalLambda
     "define", evalDefine
     "set!", evalSet
+    "and", evalAnd
+    "or", evalOr
     "quote", evalQuote
     "quasiquote", evalQuasiquote
   ]

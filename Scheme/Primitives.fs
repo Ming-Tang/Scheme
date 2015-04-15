@@ -56,30 +56,10 @@ let numGreater : Prim = chainOp (numericOp' (>) (>))
 let numLessEq : Prim = chainOp (numericOp' (<=) (<=))
 let numGreaterEq : Prim = chainOp (numericOp' (>=) (>=))
 
-let shortCircuit init op =
-  let rec reduce args =
-    match args with
-    | [] -> init
-    | [x; y] -> op x (fun() -> y)
-    | x :: xs -> op x (fun() -> reduce xs)
-  reduce
-
 let not' : Prim = fun (Args1 x) ->
   match x with
   | IsTrue -> False
   | IsFalse -> True
-
-// TODO make logical operators evaluation rules
-
-let and' : Prim = shortCircuit False (fun a b ->
-  match a with
-  | IsTrue -> b()
-  | IsFalse -> False)
-
-let or' : Prim = shortCircuit True (fun a b ->
-  match a with
-  | IsTrue -> True
-  | IsFalse -> b())
 
 let cons : Prim = fun (Args2(hd, tl)) ->
   Cons(hd, tl)
@@ -166,8 +146,6 @@ let standardPrimitives : Primitives =
     ">=", numGreaterEq
 
     "false?", not'
-    "and", and'
-    "or", or'
     "not", not'
 
     "cons", cons
