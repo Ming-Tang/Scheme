@@ -78,6 +78,14 @@ let rec (|ImproperList|_|) expr =
   | Cons (x, y) -> Some([x], y)
   | _ -> None
 
+/// Match anything as a proper or improper list. Something that is
+/// not a list is consider improper list with one improper element.
+let (|Proper|Improper|) expr =
+    match expr with
+    | ProperList xs -> Proper xs
+    | ImproperList(xs, y) -> Improper(xs, y)
+    | x -> Improper([], x)
+
 /// Construct an improper list
 let ImproperList xs y =
   List.foldBack (fun a b -> Cons(a, b)) xs y
