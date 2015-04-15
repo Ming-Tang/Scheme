@@ -1,6 +1,6 @@
 ﻿module Scheme.ActivePatterns
-open System;
-open System.Collections.Generic;
+open System
+open System.Collections.Generic
 open Scheme
 
 let private expectingArgs n args =

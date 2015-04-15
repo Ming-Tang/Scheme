@@ -1,6 +1,6 @@
 ﻿module Scheme.Rules
-open System;
-open System.Collections.Generic;
+open System
+open System.Collections.Generic
 open Scheme
 open Scheme.ActivePatterns
 
