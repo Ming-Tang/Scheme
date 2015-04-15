@@ -26,7 +26,7 @@ changes.
 - [ ] `display`, `write`, `print`
 - [X] `mcons`: mutable cons cells
 - [X] `let`, `local`
-- [ ] `unset!`
+- [X] `unset!`
 - [ ] `load` for loading files
 - [ ] Scope manipulation: The scope/env attached to a lambda
     - [ ] Create scope
