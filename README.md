@@ -19,12 +19,12 @@ changes.
 
 - [ ] Refactor primitives and evaluation rules
     - [ ] Evaluation rules should be able to understand dotted lists
-    - [ ] Define translation rules (required for macros)
+    - [X] Define translation rules (required for macros)
 - [ ] `define-macro`, `gensym`: Add evaluation rules while running
 - [ ] `error`
 - [ ] `cond`
 - [ ] `display`, `write`, `print`
-- [ ] `mcons`: mutable cons cells
+- [X] `mcons`: mutable cons cells
 - [ ] `let`, `local`
 - [ ] `unset!`
 - [ ] `load` for loading files
