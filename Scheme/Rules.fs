@@ -77,6 +77,14 @@ let evalLet : EvalRule =
   Cons(lambda (list (List.map Sym vars)) body,
        list vals)
 
+let evalLocal : EvalRule = fun eval env (ConsOnly(ProperListOnly defs, Body body)) ->
+  let local = Env.extend Map.empty env
+  for def in defs do
+    match def with
+    | ProperList (Sym "define" :: rest) -> evalDefine eval local rest |> ignore
+    | _ -> failwith "Not a define in local body"
+  eval local body
+
 let standardRules =
   Map.ofList [
     "begin", evalBegin
@@ -87,6 +95,7 @@ let standardRules =
     "and", evalAnd
     "or", evalOr
     "let", evalLet
+    "local", evalLocal
     "quote", evalQuote
     "quasiquote", evalQuasiquote
   ]
