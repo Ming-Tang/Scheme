@@ -14,7 +14,7 @@ let evalIf : EvalRule = fun eval env (Args3 (Eval eval env cond,
   | IsFalse -> eval env right
 
 let evalLambda : EvalRule =
-  fun eval env (ConsOnly (argFormat, (Body body))) ->
+  fun eval env (ConsOnly(argFormat, Body body)) ->
     match argFormat with
     | ProperImproperList(SymList args, None) ->
       Lambda(env, args, None, body)
@@ -22,7 +22,7 @@ let evalLambda : EvalRule =
       Lambda(env, args, Some rest, body)
     | ProperImproperList(_, _) ->
       failwithf "Incorrect argument format. Must be a list of symbols %s"
-                "or a list of symbols dot another symbol"
+                "or a list of symbols dot another symbol."
 
 let rec evalDefine : EvalRule = fun eval env args ->
   match args with
@@ -34,7 +34,7 @@ let rec evalDefine : EvalRule = fun eval env args ->
       [Sym func; dataToCode (evalLambda eval env [args; body])]
     evalDefine eval env defineArgs
   | _ -> failwithf "Must be in the form of (define var value) %s"
-                   "or (define (func args...) body...)"
+                   "or (define (func args...) body...)."
 
 let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
                                               Eval eval env value)) ->
@@ -53,6 +53,30 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
     | _ -> codeToData x
   evalQQ x
 
+let translation f : EvalRule = fun eval env args ->
+  f args |> eval env
+
+let if' a b c = list [Sym "if"; a; b; c]
+let lambda args body = list [Sym "lambda"; args; body]
+
+let evalAnd : EvalRule = translation <| fun xs ->
+  List.foldBack (fun a b -> if' a b False) xs True
+
+let evalOr : EvalRule = translation <| fun xs ->
+  List.fold (fun a b -> if' a True b) False xs
+
+let evalLet : EvalRule =
+  translation <| fun (ConsOnly(ProperListOnly pairs, Body body)) ->
+  let vars, vals =
+    pairs
+    |> List.map (
+      function
+      | ProperList [ Sym name; value ] -> name, value
+      | _ -> failwith "Invalid let form.")
+    |> List.unzip
+  Cons(lambda (list (List.map Sym vars)) body,
+       list vals)
+
 let standardRules =
   Map.ofList [
     "begin", evalBegin
@@ -60,6 +84,9 @@ let standardRules =
     "lambda", evalLambda
     "define", evalDefine
     "set!", evalSet
+    "and", evalAnd
+    "or", evalOr
+    "let", evalLet
     "quote", evalQuote
     "quasiquote", evalQuasiquote
   ]

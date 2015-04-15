@@ -41,8 +41,13 @@ let (|Args2OrMore|) args =
 
 let (|ConsOnly|) args =
   match args with
-  | [] -> failwith "Expecting an non-empty list"
+  | [] -> failwith "Expecting an non-empty list."
   | x :: xs -> x, xs
+
+let (|ProperListOnly|) args =
+  match args with
+  | ProperList xs -> xs
+  | _ -> failwith "Expecting a proper list."
 
 let (|SymList|_|) ss =
   let allSome f xs =

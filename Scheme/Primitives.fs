@@ -56,28 +56,10 @@ let numGreater : Prim = chainOp (numericOp' (>) (>))
 let numLessEq : Prim = chainOp (numericOp' (<=) (<=))
 let numGreaterEq : Prim = chainOp (numericOp' (>=) (>=))
 
-let shortCircuit init op =
-  let rec reduce args =
-    match args with
-    | [] -> init
-    | [x; y] -> op x (fun() -> y)
-    | x :: xs -> op x (fun() -> reduce xs)
-  reduce
-
 let not' : Prim = fun (Args1 x) ->
   match x with
   | IsTrue -> False
   | IsFalse -> True
-
-let and' : Prim = shortCircuit False (fun a b ->
-  match a with
-  | IsTrue -> b()
-  | IsFalse -> False)
-
-let or' : Prim = shortCircuit True (fun a b ->
-  match a with
-  | IsTrue -> True
-  | IsFalse -> b())
 
 let cons : Prim = fun (Args2(hd, tl)) ->
   Cons(hd, tl)
@@ -146,6 +128,11 @@ let isSymbol : Prim = fun (Args1 x) ->
   | Sym _ -> True
   | _ -> False
 
+let isLambda : Prim = fun (Args1 x) ->
+  match x with
+  | Prim _ | Lambda(_, _, _, _) -> True
+  | _ -> False
+
 let standardPrimitives : Primitives =
   Map.ofList [
     "+", add
@@ -159,16 +146,18 @@ let standardPrimitives : Primitives =
     ">=", numGreaterEq
 
     "false?", not'
-    "and", and'
-    "or", or'
     "not", not'
 
     "cons", cons
     "car", car
     "cdr", cdr
+    "first", car
+    "rest", cdr
     "list", list
 
     "equal?", equals
+    "eqv?", equals
+    "eq?", equals
     "boolean?", isBoolean
     "number?", isNumber
     "real?", isReal
@@ -182,6 +171,8 @@ let standardPrimitives : Primitives =
     "null?", isNil
     "string?", isString
     "symbol?", isSymbol
+    "lambda?", isLambda
+    "proc?", isLambda
   ]
 
 let standardSymbols : SymbolTable =

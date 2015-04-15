@@ -79,3 +79,6 @@ type TestSamplePrograms() =
   [<Test>]
   member x.TestFunctionArguments() = run "functionArguments"
 
+  [<Test>]
+  member x.TestMcons() = run "mcons"
+

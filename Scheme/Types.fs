@@ -183,7 +183,9 @@ let inline dataToCode expr = convert<Data, Code> expr
 
 /// Parse a sequence of S-expressions
 let parse str =
-  LexBuffer<char>.FromString str
+  str
+  |> sprintf "(begin\n%s\n)"
+  |> LexBuffer<char>.FromString
   |> Parser.start Lexer.read
   |> List.map fromSExprView
 
