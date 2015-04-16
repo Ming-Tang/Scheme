@@ -78,6 +78,15 @@ let list : Prim = ProperList
 
 let equals : Prim = fun (Args2(a, b)) -> createBool (a = b)
 
+let error : Prim = fun xs ->
+  let join = List.map (sprintf "%A") >> String.concat " "
+  match xs with
+  | [Sym s; Str msg] ->
+    failwith "%s: %" s msg
+  | [Str msg] ->
+    failwith msg
+  | _ -> failwith "error"
+
 let isNumber : Prim = fun (Args1 x) ->
   match x with
   | Real _ | Int _ -> True
@@ -154,6 +163,8 @@ let standardPrimitives : Primitives =
     "first", car
     "rest", cdr
     "list", list
+
+    "error", error
 
     "equal?", equals
     "eqv?", equals
