@@ -26,6 +26,7 @@ let nl = ('\n' | '\r' '\n')
 let ws = [' ' '\t']+
 let comment = ';' [^'\r' '\n']*
 let sym = [^'(' ')' '[' ']' '{' '}' '"' ',' '\'' '`' ';' '#' '|' '\\' ' ' '\t' '\r' '\n']+
+let uqs = (',' '@')
 // not ident: ( ) [ ] { } " , ' ` ; # | \
 
 rule read =
@@ -37,6 +38,7 @@ rule read =
   | '.'     { DOT }
   | '\''    { QUOTE }
   | '`'     { QUASIQUOTE }
+  | uqs     { UNQUOTE_SPLICING }
   | ','     { UNQUOTE }
   | '('     { OPEN_PAREN }
   | ')'     { CLOSE_PAREN }

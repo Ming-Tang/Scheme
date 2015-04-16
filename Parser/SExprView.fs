@@ -15,6 +15,7 @@ type SExprView =
 | QuoteV of SExprView
 | QuasiquoteV of SExprView
 | UnquoteV of SExprView
+| UnquoteSplicingV of SExprView
 | ProperListV of SExprView list
 | DottedListV of SExprView list * SExprView
 
@@ -30,6 +31,7 @@ let rec format v =
   | QuoteV s -> sprintf "'%s" (format s)
   | QuasiquoteV s -> sprintf "`%s" (format s)
   | UnquoteV s -> sprintf ",%s" (format s)
+  | UnquoteSplicingV s -> sprintf ",@%s" (format s)
   | ProperListV xs ->
     xs
     |> List.map format
