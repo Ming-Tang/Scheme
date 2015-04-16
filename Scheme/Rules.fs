@@ -65,6 +65,9 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
 let translation f : EvalRule = fun eval env args ->
   f args |> eval env
 
+let evalError name : EvalRule = fun eval env args ->
+  failwithf "Unexpected %s." name
+
 let if' a b c = list [Sym "if"; a; b; c]
 let lambda args body = list [Sym "lambda"; args; body]
 
@@ -108,5 +111,7 @@ let standardRules =
     "local", evalLocal
     "quote", evalQuote
     "quasiquote", evalQuasiquote
+    "unquote", evalError "unquote"
+    "unquote-splicing", evalError "unquote-splicing"
   ]
 
