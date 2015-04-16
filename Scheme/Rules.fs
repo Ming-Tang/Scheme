@@ -48,10 +48,15 @@ let evalUnset : EvalRule = fun eval env (Args1 (SymOnly var)) ->
 let evalQuote : EvalRule = fun eval env (Args1 x) -> codeToData x
 
 let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
+  let rec append (ProperListOnly xs) ys =
+    List.foldBack (fun a b -> Cons(a, b)) xs ys
+
   let rec evalQQ x =
     match x with
     | ProperList [Sym "unquote"; y] ->
       eval env y
+    | Cons(ProperList [Sym "unquote-splicing"; y], z) ->
+      append (eval env y) (evalQQ z)
     | Cons(a, b) ->
       Cons(evalQQ a, evalQQ b)
     | _ -> codeToData x
