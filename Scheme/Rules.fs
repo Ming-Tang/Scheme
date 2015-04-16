@@ -52,8 +52,8 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
     match x with
     | ProperList [Sym "unquote"; y] ->
       eval env y
-    | ProperList xs ->
-      list (List.map evalQQ xs)
+    | Cons(a, b) ->
+      Cons(evalQQ a, evalQQ b)
     | _ -> codeToData x
   evalQQ x
 

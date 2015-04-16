@@ -80,14 +80,14 @@ let rec (|ImproperList|_|) expr =
 
 /// Match anything as a proper or improper list. Something that is
 /// not a list is consider improper list with one improper element.
-let (|Proper|Improper|) expr =
+let (|ProperImproper|) expr =
     match expr with
-    | ProperList xs -> Proper xs
-    | ImproperList(xs, y) -> Improper(xs, y)
-    | x -> Improper([], x)
+    | ProperList xs -> xs, None
+    | ImproperList(xs, y) -> xs, Some y
+    | x -> [], Some x
 
 /// Construct an improper list
-let ImproperList xs y =
+let ImproperList(xs, y) =
   List.foldBack (fun a b -> Cons(a, b)) xs y
 
 let list = ProperList
@@ -150,7 +150,7 @@ let rec fromSExprView (v : SExprView) =
   | SExprView.UnquoteV qb -> ProperList [Sym "unquote"; fromSExprView qb]
   | SExprView.ProperListV xs -> ProperList (List.map fromSExprView xs)
   | SExprView.DottedListV(xs, y) ->
-    ImproperList (List.map fromSExprView xs) (fromSExprView y)
+    ImproperList (List.map fromSExprView xs, fromSExprView y)
 
 let rec toSExprView expr =
   match expr with
