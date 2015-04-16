@@ -19,7 +19,7 @@ changes.
 
 - [X] Nested quasiquotes and unquote-splicing
 - [ ] `define-macro`, `gensym`: Add evaluation rules while running
-- [ ] `error`
+- [X] `error`
 - [ ] `cond`
 - [ ] `display`, `write`, `print`
 - [X] `mcons`: mutable cons cells
