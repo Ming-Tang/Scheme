@@ -17,9 +17,7 @@ $ mono ./Main/bin/Debug/Main.exe
 Make sure everything in the SICP are runnable, except mutable `cons` need extra
 changes.
 
-- [ ] Refactor primitives and evaluation rules
-    - [ ] Evaluation rules should be able to understand dotted lists
-    - [X] Define translation rules (required for macros)
+- [X] Nested quasiquotes and unquote-splicing
 - [ ] `define-macro`, `gensym`: Add evaluation rules while running
 - [ ] `error`
 - [ ] `cond`
