@@ -51,16 +51,22 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
   let rec append (ProperListOnly xs) ys =
     List.foldBack (fun a b -> Cons(a, b)) xs ys
 
-  let rec evalQQ x =
+  let rec evalQQ n x =
     match x with
+    | ProperList [Sym "quasiquote"; y] ->
+      list [Sym "quasiquote"; evalQQ (n + 1) y]
     | ProperList [Sym "unquote"; y] ->
-      eval env y
+      if n = 0 then eval env y
+      else list [Sym "unquote"; evalQQ (n - 1) y]
+    | ProperList [Sym "unquote-splicing"; y] ->
+      list [Sym "unquote-splicing"; evalQQ (if n = 0 then 0 else n - 1) y]
     | Cons(ProperList [Sym "unquote-splicing"; y], z) ->
-      append (eval env y) (evalQQ z)
+      if n = 0 then append (eval env y) (evalQQ 0 z)
+      else Cons(list [Sym "unquote-splicing"; evalQQ (n - 1) y], evalQQ n z)
     | Cons(a, b) ->
-      Cons(evalQQ a, evalQQ b)
+      Cons(evalQQ n a, evalQQ n b)
     | _ -> codeToData x
-  evalQQ x
+  evalQQ 0 x
 
 let translation f : EvalRule = fun eval env args ->
   f args |> eval env

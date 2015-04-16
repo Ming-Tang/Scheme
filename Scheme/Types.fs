@@ -172,11 +172,11 @@ let rec toSExprView expr =
   | ProperList [Sym "quote"; q] ->
     SExprView.QuoteV (toSExprView q)
   | ProperList [Sym "unquote"; uq] ->
-    SExprView.QuoteV (toSExprView uq)
+    SExprView.UnquoteV (toSExprView uq)
   | ProperList [Sym "unquote-splicing"; uqs] ->
     SExprView.UnquoteSplicingV (toSExprView uqs)
   | ProperList [Sym "quasiquote"; qq] ->
-    SExprView.QuoteV (toSExprView qq)
+    SExprView.QuasiquoteV (toSExprView qq)
   | ProperList xs ->
     SExprView.ProperListV (List.map toSExprView xs)
   | ImproperList(xs, y) ->
