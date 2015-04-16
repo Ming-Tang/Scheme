@@ -1,6 +1,6 @@
 ﻿module Scheme.Rules
-open System;
-open System.Collections.Generic;
+open System
+open System.Collections.Generic
 open Scheme
 open Scheme.ActivePatterns
 
@@ -48,17 +48,31 @@ let evalUnset : EvalRule = fun eval env (Args1 (SymOnly var)) ->
 let evalQuote : EvalRule = fun eval env (Args1 x) -> codeToData x
 
 let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
-  let rec evalQQ x =
+  let rec append (ProperListOnly xs) ys =
+    List.foldBack (fun a b -> Cons(a, b)) xs ys
+
+  let rec evalQQ n x =
     match x with
+    | ProperList [Sym "quasiquote"; y] ->
+      list [Sym "quasiquote"; evalQQ (n + 1) y]
     | ProperList [Sym "unquote"; y] ->
-      eval env y
-    | ProperList xs ->
-      list (List.map evalQQ xs)
+      if n = 0 then eval env y
+      else list [Sym "unquote"; evalQQ (n - 1) y]
+    | ProperList [Sym "unquote-splicing"; y] ->
+      list [Sym "unquote-splicing"; evalQQ (if n = 0 then 0 else n - 1) y]
+    | Cons(ProperList [Sym "unquote-splicing"; y], z) ->
+      if n = 0 then append (eval env y) (evalQQ 0 z)
+      else Cons(list [Sym "unquote-splicing"; evalQQ (n - 1) y], evalQQ n z)
+    | Cons(a, b) ->
+      Cons(evalQQ n a, evalQQ n b)
     | _ -> codeToData x
-  evalQQ x
+  evalQQ 0 x
 
 let translation f : EvalRule = fun eval env args ->
   f args |> eval env
+
+let evalError name : EvalRule = fun eval env args ->
+  failwithf "Unexpected %s." name
 
 let if' a b c = list [Sym "if"; a; b; c]
 let lambda args body = list [Sym "lambda"; args; body]
@@ -103,5 +117,7 @@ let standardRules =
     "local", evalLocal
     "quote", evalQuote
     "quasiquote", evalQuasiquote
+    "unquote", evalError "unquote"
+    "unquote-splicing", evalError "unquote-splicing"
   ]
 

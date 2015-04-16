@@ -12,6 +12,7 @@ open Scheme.SExprView
 %token QUOTE
 %token QUASIQUOTE
 %token UNQUOTE
+%token UNQUOTE_SPLICING
 %token TRUE
 %token FALSE
 %token <string> STRING
@@ -55,4 +56,5 @@ value:
 | QUOTE value { QuoteV $2 }
 | QUASIQUOTE value { QuasiquoteV $2 }
 | UNQUOTE value { UnquoteV $2 }
+| UNQUOTE_SPLICING value { UnquoteSplicingV $2 }
 

@@ -1,6 +1,6 @@
 ﻿namespace Scheme
-open System;
-open System.Collections.Generic;
+open System
+open System.Collections.Generic
 open Scheme
 
 [<AutoOpen>]

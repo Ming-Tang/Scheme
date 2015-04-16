@@ -82,3 +82,6 @@ type TestSamplePrograms() =
   [<Test>]
   member x.TestMcons() = run "mcons"
 
+  [<Test>]
+  member x.TestQuotesAndQuasiquotes() = run "quotesAndQuasiquotes"
+

@@ -78,8 +78,16 @@ let rec (|ImproperList|_|) expr =
   | Cons (x, y) -> Some([x], y)
   | _ -> None
 
+/// Match anything as a proper or improper list. Something that is
+/// not a list is consider improper list with one improper element.
+let (|ProperImproper|) expr =
+    match expr with
+    | ProperList xs -> xs, None
+    | ImproperList(xs, y) -> xs, Some y
+    | x -> [], Some x
+
 /// Construct an improper list
-let ImproperList xs y =
+let ImproperList(xs, y) =
   List.foldBack (fun a b -> Cons(a, b)) xs y
 
 let list = ProperList
@@ -137,12 +145,18 @@ let rec fromSExprView (v : SExprView) =
   | SExprView.RealV r -> Real r
   | SExprView.StrV s -> Str s
   | SExprView.SymV s -> Sym s
-  | SExprView.QuoteV qb -> ProperList [Sym "quote"; fromSExprView qb]
-  | SExprView.QuasiquoteV qqb -> ProperList [Sym "quasiquote"; fromSExprView qqb]
-  | SExprView.UnquoteV qb -> ProperList [Sym "unquote"; fromSExprView qb]
-  | SExprView.ProperListV xs -> ProperList (List.map fromSExprView xs)
+  | SExprView.QuoteV qb ->
+    ProperList [Sym "quote"; fromSExprView qb]
+  | SExprView.QuasiquoteV qqb ->
+    ProperList [Sym "quasiquote"; fromSExprView qqb]
+  | SExprView.UnquoteV uqb ->
+    ProperList [Sym "unquote"; fromSExprView uqb]
+  | SExprView.UnquoteSplicingV uqsb ->
+    ProperList [Sym "unquote-splicing"; fromSExprView uqsb]
+  | SExprView.ProperListV xs ->
+    ProperList (List.map fromSExprView xs)
   | SExprView.DottedListV(xs, y) ->
-    ImproperList (List.map fromSExprView xs) (fromSExprView y)
+    ImproperList (List.map fromSExprView xs, fromSExprView y)
 
 let rec toSExprView expr =
   match expr with
@@ -154,14 +168,20 @@ let rec toSExprView expr =
   | Str s -> SExprView.StrV s
   | Sym s -> SExprView.SymV s
   | Prim s -> SExprView.SymV (sprintf "#<primitive:%s>" s)
-  | ProperList [Sym "quote"; q] -> SExprView.QuoteV (toSExprView q)
-  | ProperList [Sym "unquote"; uq] -> SExprView.QuoteV (toSExprView uq)
-  | ProperList [Sym "quasiquote"; qq] -> SExprView.QuoteV (toSExprView qq)
-  | ProperList xs -> SExprView.ProperListV (List.map toSExprView xs)
+  | Lambda(_, _, _, _) -> SExprView.SymV "#<lambda>"
+  | ProperList [Sym "quote"; q] ->
+    SExprView.QuoteV (toSExprView q)
+  | ProperList [Sym "unquote"; uq] ->
+    SExprView.UnquoteV (toSExprView uq)
+  | ProperList [Sym "unquote-splicing"; uqs] ->
+    SExprView.UnquoteSplicingV (toSExprView uqs)
+  | ProperList [Sym "quasiquote"; qq] ->
+    SExprView.QuasiquoteV (toSExprView qq)
+  | ProperList xs ->
+    SExprView.ProperListV (List.map toSExprView xs)
   | ImproperList(xs, y) ->
     SExprView.DottedListV (List.map toSExprView xs, toSExprView y)
   | Cons(_, _) -> failwith "Impossible case: A list either proper or improper."
-  | Lambda(_, _, _, _) -> SExprView.SymV "#<lambda>"
 
 /// Convert an expression from one form (code or data) to another
 let rec convert<'A, 'B when 'A :> CodeOrData
