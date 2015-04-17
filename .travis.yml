@@ -4,7 +4,7 @@ install:
   - nuget restore
 script:
   - chmod +x ./packages/FsLexYacc.6.1.0/build/*.exe
-  - xbuild ./Scheme.sln
+  - xbuild
   - cd ./Tests/bin/Debug
   - mono Tests.exe $(cat Tests.txt)
 notifications:
