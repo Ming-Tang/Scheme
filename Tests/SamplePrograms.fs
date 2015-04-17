@@ -3,85 +3,108 @@
 open System
 open System.IO
 open System.Collections.Generic
-open NUnit.Framework
-open FsUnit.TopLevelOperators
+open System.IO
+open System.Reflection
 open Scheme
 open Scheme.Eval
 
-[<TestFixture>]
-type TestSamplePrograms() =
-  let run testName =
-    let tests = new List<unit -> unit>()
-    let results = new List<string option>()
+type TestFailure =
+| CheckErrorFail
+| CheckExpectFail of actual: Data Expr * expected: Data Expr
+| CheckExpectError of exn
 
-    let checkExpect : EvalRule = fun eval env (ActivePatterns.Args2(a, b)) ->
-      tests.Add <| fun() ->
-        try
-          let a = eval env a
-          let b = eval env b
-          if a <> b then
-            sprintf "check-expect failed.\nExpected: %A\nActual: %A" a b
-            |> Some
-            |> results.Add
-          else
-            results.Add(None)
-        with
-        | e -> results.Add(Some (sprintf "%A" e))
-      Nil
+type TestCase = unit -> TestFailure option
 
-    let checkError : EvalRule = fun eval env (ActivePatterns.Args1(a)) ->
-      tests.Add <| fun() ->
-        try
-          eval env a |> ignore
-          results.Add(Some "check-error: No error was raised.")
-        with
-        | e -> results.Add(None)
-      Nil
+let run testName =
+  let testCases = new List<TestCase>()
 
-    let rules =
-      seq {
-        yield! Seq.map (fun (KeyValue(k, v)) -> k, v) Rules.standardRules
-        yield "check-expect", checkExpect
-        yield "check-error", checkError
-      }
-      |> Map.ofSeq
+  let checkExpect : EvalRule = fun eval env (ActivePatterns.Args2(a, b)) ->
+    testCases.Add <| fun() ->
+      try
+        let actual = eval env a
+        let expected = eval env b
+        if actual <> expected then
+          Some <| CheckExpectFail(actual, expected)
+        else
+          None
+      with
+      | e -> Some <| CheckExpectError e
+    Nil
 
-    let standardConfig = {
-      Primitives = Primitives.standardPrimitives
-      EvalRules = rules
-    }
+  let checkError : EvalRule = fun eval env (ActivePatterns.Args1(a)) ->
+    testCases.Add <| fun() ->
+      try
+        eval env a |> ignore
+        Some CheckErrorFail
+      with
+      | e -> None
+    Nil
 
-    let path = testName + ".scm"
-    let text = File.ReadAllText(path)
-    let expr = parse text
-    let env = Env.extend Primitives.standardSymbols <| Env.create()
+  let rules =
+    Rules.standardRules
+    |> Map.add "check-expect" checkExpect
+    |> Map.add "check-error" checkError
 
-    Begin expr
-    |> eval standardConfig env
-    |> ignore
+  let standardConfig = {
+    Primitives = Primitives.standardPrimitives
+    EvalRules = rules
+  }
 
-    for t in tests do t()
+  let env = Env.extend Primitives.standardSymbols <| Env.create()
 
-    let passes, fails = List.partition Option.isNone <| List.ofSeq results
-    if not (Seq.isEmpty fails) then
-      let nPasses = List.length passes
-      let nFails = List.length fails
+  File.ReadAllText(testName + ".scm")
+  |> Types.parse
+  |> Begin
+  |> eval standardConfig env
+  |> ignore
 
-      fails
-      |> Seq.map (Option.get >> sprintf "- %s")
-      |> String.concat "\n"
-      |> failwithf "%d passed, %d failed, %d total\n%s"
-                   nPasses nFails (nPasses + nFails)
+  let results = [ for test in testCases -> test() ]
+  let passes, fails = List.partition Option.isNone results
 
-  [<Test>]
-  member x.TestChurchEncoding() = run "church"
+  List.length results,
+  passes.Length,
+  List.map Option.get fails
 
-  [<Test>]
-  member x.TestFunctionArguments() = run "functionArguments"
+let report name (testCount, passCount, fails) =
+  let failCount = List.length fails
+  if failCount = 0 then
+    printfn "%s: %d passed" name passCount
+  else
+    printfn "%s: %d passed, %d failed" name passCount failCount
 
-  [<Test>]
-  member x.TestMcons() = run "mcons"
+  for fail in fails do
+    match fail with
+    | CheckErrorFail ->
+      eprintfn "  check-error failed: Did not encounter error."
+    | CheckExpectFail(expected, actual) ->
+      eprintfn "  check-expect failed: "
+      eprintfn "  Expecting: %A" expected
+      eprintfn "  Actual: %A" actual
+    | CheckExpectError e ->
+      eprintfn "  check-expect failed due to error: "
+      eprintfn "%s" e.Message
 
-  [<Test>]
-  member x.TestQuotesAndQuasiquotes() = run "quotesAndQuasiquotes"
+  fails <> []
+
+[<EntryPoint>]
+let main argv =
+  if argv.Length = 0 then
+    eprintfn "Usage: Tests.exe testName1...testNameN"
+    64
+  else
+    try
+      let fails = [
+        for program in argv ->
+          run program
+          |> report program
+      ]
+
+      if List.exists id fails then
+        1
+      else
+        0
+    with
+    | :? FileNotFoundException as e ->
+      eprintfn "%s" e.Message
+      32
 

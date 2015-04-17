@@ -1,14 +1,11 @@
 language: csharp
 solution: Scheme.sln
 install:
-  - sudo apt-get install mono-devel mono-gmcs nunit-console
   - nuget restore
 script:
   - chmod +x ./packages/FsLexYacc.6.1.0/build/*.exe
-  - xbuild ./Scheme.sln
-  # Couldn't get nunit working in Travis CI.
-  # I get MissingMethodException in Travis CI
-  # Then I get TypeInitializationException in Vagrant box
-  #- nunit-console ./Tests/bin/Debug/Tests.dll
+  - xbuild
+  - cd ./Tests/bin/Debug
+  - mono Tests.exe $(cat Tests.txt)
 notifications:
   email: false
