@@ -2,6 +2,7 @@
 open System
 open System.Collections.Generic
 open Scheme
+open Scheme.Expr
 
 [<AutoOpen>]
 module Eval =
@@ -12,7 +13,7 @@ module Eval =
     let (|SelfEvaluating|_|) expr =
       match expr with
       | False | True | Int _ | Real _ | Str _
-      | Lambda(_, _, _, _) -> Some(codeToData expr)
+      | Lambda(_, _, _, _) -> Some(Expr.codeToData expr)
       | Prim _ | Sym _ | Cons _ | Nil  -> None
 
     let (|RuleMatch|_|) expr =

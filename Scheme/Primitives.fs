@@ -197,7 +197,7 @@ let standardSymbols : SymbolTable =
                                     .GetManifestResourceStream("standard.scm"))
 
   sr.ReadToEnd()
-  |> Types.parse
+  |> Expr.parse
   |> Begin
   |> Eval.eval config env
   |> ignore

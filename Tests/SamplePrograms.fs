@@ -53,7 +53,7 @@ let run testName =
   let env = Env.extend Primitives.standardSymbols <| Env.create()
 
   File.ReadAllText(testName + ".scm")
-  |> Types.parse
+  |> Expr.parse
   |> Begin
   |> eval standardConfig env
   |> ignore
