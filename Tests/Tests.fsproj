@@ -41,6 +41,9 @@
     <None Include="church.scm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="strings.scm">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="fibTailRec.scm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
