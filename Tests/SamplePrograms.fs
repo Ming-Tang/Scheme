@@ -12,6 +12,8 @@ type TestFailure =
 | CheckErrorFail
 | CheckExpectFail of actual: Data Expr * expected: Data Expr
 | CheckExpectError of exn
+| CheckWithinFail of actual : float * lo : float * hi : float
+| CheckWithinError of exn
 
 type TestCase = unit -> TestFailure option
 
@@ -40,10 +42,33 @@ let run testName =
       | e -> None
     Nil
 
+  let checkRange : EvalRule = fun eval env (ActivePatterns.Args3(a, x, y)) ->
+    testCases.Add <| fun() ->
+      try
+        let actual = eval env a
+        let lo = eval env x
+        let hi = eval env y
+        match actual, lo, hi with
+        | Real a, Real x, Real y ->
+          if x <= a && a <= y then None
+          else Some <| CheckWithinFail(a, x, y)
+        | Real _, _, _ ->
+          failwith "Range must be real numbers."
+        | _, _, _ ->
+          failwith "Actual value is not a number, but is %s" (Expr.format actual)
+      with
+      | e -> Some <| CheckExpectError e
+    Nil
+
+  let checkWithin : EvalRule = Rules.translation <| fun (ActivePatterns.Args3(a, x, y)) ->
+    list [Sym "check-range"; a; list [Sym "-"; x; y]; list [Sym "+"; x; y] ]
+
   let rules =
     Rules.standardRules
     |> Map.add "check-expect" checkExpect
     |> Map.add "check-error" checkError
+    |> Map.add "check-within" checkWithin
+    |> Map.add "check-range" checkRange
 
   let standardConfig = {
     Primitives = Primitives.standardPrimitives
@@ -76,13 +101,20 @@ let report name (testCount, passCount, fails) =
     match fail with
     | CheckErrorFail ->
       eprintfn "  check-error failed: Did not encounter error."
-    | CheckExpectFail(expected, actual) ->
-      eprintfn "  check-expect failed: "
+    | CheckExpectFail(actual, expected) ->
+      eprintfn " check-expect failed: "
       eprintfn "  Expecting: %s" (Expr.format expected)
       eprintfn "  Actual: %s" (Expr.format actual)
     | CheckExpectError e ->
-      eprintfn "  check-expect failed due to error: "
-      eprintfn "%s" e.Message
+      eprintfn " check-expect failed due to error: "
+      eprintfn "    %s" e.Message
+    | CheckWithinFail(actual, lo, hi) ->
+      eprintfn " check-within/check-range failed: "
+      eprintfn "  Expecting range [%f, %f]" lo hi
+      eprintfn "  Actual: %f" actual
+    | CheckWithinError(e) ->
+      eprintfn "  check-within failed due to error: "
+      eprintfn "    %s" e.Message
 
   fails <> []
 
