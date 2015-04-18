@@ -84,6 +84,7 @@ let rec makeExpr (value : obj) =
     |> list
   | _ -> failwith "Cannot convert a %O into an Expr."
 
+/// Create an expression from an SExprView
 let rec fromSExprView (v : SExprView) =
   match v with
   | SExprView.NilV -> Nil
@@ -106,6 +107,7 @@ let rec fromSExprView (v : SExprView) =
   | SExprView.DottedListV(xs, y) ->
     ImproperList (List.map fromSExprView xs, fromSExprView y)
 
+/// Convert an expression into SExprView
 let rec toSExprView expr =
   match expr with
   | Nil -> SExprView.NilV
@@ -146,7 +148,10 @@ let rec convert<'A, 'B when 'A :> CodeOrData
   | Cons(a, b) -> Cons(convert<'A, 'B> a, convert<'A, 'B> b)
   | Lambda(e, a, d, b) -> Lambda(e, a, d, b)
 
+/// Convert a Code Expr into a Data Expr
 let inline codeToData expr = convert<Code, Data> expr
+
+/// Convert a Data Expr into a Code Expr
 let inline dataToCode expr = convert<Data, Code> expr
 
 /// Parse a sequence of S-expressions
@@ -156,5 +161,4 @@ let parse str =
   |> LexBuffer<char>.FromString
   |> Parser.start Lexer.read
   |> List.map fromSExprView
-
 
