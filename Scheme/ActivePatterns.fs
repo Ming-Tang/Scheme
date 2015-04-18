@@ -65,6 +65,16 @@ let (|SymList|_|) ss =
 let (|Eval|) (eval : Eval) env expr =
   eval env expr
 
+let (|IntOnly|) arg =
+  match arg with
+  | Int i -> i
+  | _ -> failwith "Expecting an integer."
+
+let (|StrOnly|) arg =
+  match arg with
+  | Str s -> s
+  | _ -> failwith "Expecting a string."
+
 let (|SymOnly|) arg =
   match arg with
   | Sym s -> s

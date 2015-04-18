@@ -56,6 +56,12 @@ let numGreater : Prim = chainOp (numericOp' (>) (>))
 let numLessEq : Prim = chainOp (numericOp' (<=) (<=))
 let numGreaterEq : Prim = chainOp (numericOp' (>=) (>=))
 
+let stringLength : Prim = fun (Args1(StrOnly s)) -> Int s.Length
+let stringRef : Prim = fun (Args2(StrOnly s, IntOnly i)) -> Str (string s.[i])
+let stringAppend : Prim = List.fold (fun s (StrOnly t) -> s + t) "" >> Str
+let substring : Prim = fun (Args3(StrOnly s, IntOnly m, IntOnly n)) ->
+  s.Substring(m, n - m) |> Str
+
 let not' : Prim = fun (Args1 x) ->
   match x with
   | IsTrue -> False
@@ -153,6 +159,11 @@ let standardPrimitives : Primitives =
     ">", numGreater
     "<=", numLessEq
     ">=", numGreaterEq
+
+    "string-length", stringLength
+    "string-ref", stringRef
+    "string-append", stringAppend
+    "substring", substring
 
     "false?", not'
     "not", not'
