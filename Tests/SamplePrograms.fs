@@ -78,8 +78,8 @@ let report name (testCount, passCount, fails) =
       eprintfn "  check-error failed: Did not encounter error."
     | CheckExpectFail(expected, actual) ->
       eprintfn "  check-expect failed: "
-      eprintfn "  Expecting: %A" expected
-      eprintfn "  Actual: %A" actual
+      eprintfn "  Expecting: %s" (Expr.format expected)
+      eprintfn "  Actual: %s" (Expr.format actual)
     | CheckExpectError e ->
       eprintfn "  check-expect failed due to error: "
       eprintfn "%s" e.Message

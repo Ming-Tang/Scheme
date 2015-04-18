@@ -133,6 +133,9 @@ let rec toSExprView expr =
     SExprView.DottedListV (List.map toSExprView xs, toSExprView y)
   | Cons(_, _) -> failwith "Impossible case: A list either proper or improper."
 
+/// Format an expression into a string
+let format expr = sprintf "%A" (toSExprView expr)
+
 /// Convert an expression from one form (code or data) to another
 let rec convert<'A, 'B when 'A :> CodeOrData
                        and 'B :> CodeOrData> expr : 'B Expr =

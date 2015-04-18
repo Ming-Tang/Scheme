@@ -63,7 +63,7 @@ module Eval =
       | Sym x -> lookup env x
       | RuleMatch (name, args, rule) -> rule eval env args
       | Apply (func, args) -> apply env func args
-      | _ -> failwithf "Invalid expression: %A" expr
+      | _ -> failwithf "Invalid expression: %s" (Expr.format expr)
 
     and apply env func args =
       let func = eval env func
@@ -74,7 +74,7 @@ module Eval =
         let env' = Env.extend argMap env
         eval env' body
       | Prim prim -> prims.[prim] args
-      | _ -> failwithf "Not a function: %A" func
+      | _ -> failwithf "Not a function: %s" (Expr.format func)
 
     eval env0 expr0
 
