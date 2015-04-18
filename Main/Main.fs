@@ -21,7 +21,7 @@ let main argv =
       let block = Begin parsed
       let result = eval env block
       if result <> Nil then
-        printfn "%A" result
+        printfn "%s" (Expr.format result)
       loop env
     with
     | e ->

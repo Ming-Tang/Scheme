@@ -14,7 +14,7 @@ let inline numericOp' intOp realOp =
     | Real a, Int b -> realOp a (float b)
     | Int a, Int b -> intOp a b
     | (Real _ | Int _), x
-    | x, _ -> failwithf "Non-numeric argument found: %A" x
+    | x, _ -> failwithf "Non-numeric argument found: %s" (Expr.format x)
 
 let inline numericOp intOp realOp =
   numericOp' (fun a b -> intOp a b |> Int)
@@ -31,7 +31,7 @@ let numEqBinary =
     | Int a, Real b | Real b, Int a -> (float a) = b |> createBool
     | Int a, Int b -> a = b |> createBool
     | (Real _ | Int _), x
-    | x, _ -> failwithf "Non-numeric argument found: %A" x
+    | x, _ -> failwithf "Non-numeric argument found: %s" (Expr.format x)
 
 let inline numeric init intOp realOp : Prim =
   let op = numericOp intOp realOp
@@ -79,7 +79,7 @@ let list : Prim = ProperList
 let equals : Prim = fun (Args2(a, b)) -> createBool (a = b)
 
 let error : Prim = fun xs ->
-  let join = List.map (sprintf "%A") >> String.concat " "
+  let join = List.map Expr.format >> String.concat " "
   match xs with
   | [Sym s; Str msg] ->
     failwith "%s: %" s msg
@@ -197,7 +197,7 @@ let standardSymbols : SymbolTable =
                                     .GetManifestResourceStream("standard.scm"))
 
   sr.ReadToEnd()
-  |> Types.parse
+  |> Expr.parse
   |> Begin
   |> Eval.eval config env
   |> ignore
