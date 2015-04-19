@@ -7,13 +7,16 @@ open Scheme.Eval
 open Scheme.Standard
 open Microsoft.FSharp.Text.Lexing
 
-let readAndParse() =
-  LexBuffer<char>.FromTextReader Console.In
-  |> Parser.start Lexer.read
-  |> List.map fromSExprView
-
 [<EntryPoint>]
 let main argv =
+  use stream = Console.OpenStandardInput()
+  use br = new StreamReader(stream)
+
+  let readAndParse() =
+    LexBuffer<char>.FromTextReader br
+    |> Parser.start Lexer.read
+    |> List.map fromSExprView
+
   let eval = Standard.eval
   let rec loop env =
     try
