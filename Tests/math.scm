@@ -101,3 +101,22 @@
 (check-expect (round 12.66) 13)
 (check-expect (round -12.66) -13)
 
+(check-within (exp 0.0) 1.0 1e-5)
+(check-within (exp 1.0) 2.718281828 1e-5)
+(check-within (exp 11.11) 66836.19138 1e-3)
+(check-within (sin 1.0) 0.8414709848 1e-5)
+(check-within (cos 1.0) 0.5403023059 1e-5)
+(check-within (tan 1.0) 1.557407725 1e-5)
+(check-within (asin 1.0) 1.5707963267948966 1e-5)
+(check-within (acos 0.3) 1.266103672779499 1e-5)
+(check-within (atan 1.0) 0.7853981633974483 1e-5)
+(check-within (atan 2.0 -0.8) 1.9513027039072615 1e-5)
+(check-within (sqrt 2.0) 1.4142135623730951 1e-5)
+
+(check-expect (expt 0 0) 1)
+(check-expect (expt 0 5) 0)
+(check-expect (expt 1 5) 1)
+(check-expect (expt 6 5) 7776)
+(check-within (expt 6 0.5) 2.449489743 1e-5)
+(check-within (expt 10 -7.31) 4.8977881936844667e-08 1e-10)
+
