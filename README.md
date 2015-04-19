@@ -22,6 +22,7 @@ changes.
 - [X] `error`
 - [ ] `cond`
 - [ ] `display`, `write`, `print`
+- [X] String manipulation and math functions
 - [X] `mcons`: mutable cons cells
 - [X] `let`, `local`
 - [X] `unset!`
