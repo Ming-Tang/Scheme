@@ -11,6 +11,13 @@ module Env =
     { Env.Symbols = Dictionary()
       Parent = None }
 
+  let fromMap (map : #seq<KeyValuePair<_, _>>) =
+    let dic = Dictionary()
+    for KeyValue(k, v) in map do dic.Add(k, v)
+
+    { Env.Symbols = dic
+      Parent = None }
+
   /// Find the innermost scope that contains the name, None if not found
   let rec find name ({ Env.Symbols = symbols; Parent = parent } as env) =
     let found, value = symbols.TryGetValue(name)

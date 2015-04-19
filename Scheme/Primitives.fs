@@ -269,7 +269,10 @@ let standardPrimitives : Primitives =
   ]
 
 let standardSymbols : SymbolTable =
-  let env = Env.create()
+  let env =
+    standardPrimitives
+    |> Map.map (fun k _ -> Expr.Prim k)
+    |> Env.fromMap
   let config = {
     Config.Primitives = standardPrimitives
     EvalRules = Rules.standardRules
