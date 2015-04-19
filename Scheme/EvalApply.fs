@@ -33,7 +33,6 @@ module Eval =
     let lookup env sym =
       match Env.lookup sym env with
       | Some v -> v
-      | None when Map.containsKey sym prims -> Prim sym
       | None -> failwithf "Undefined variable: %s" sym
 
     let matchArgs (argNames, rest) args =
