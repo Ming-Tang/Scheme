@@ -35,7 +35,7 @@
     <None Include="Tests.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="arithmetic.scm">
+    <None Include="math.scm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="church.scm">
