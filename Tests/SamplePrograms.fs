@@ -110,7 +110,7 @@ let report name (testCount, passCount, fails) =
       eprintfn "    %s" e.Message
     | CheckWithinFail(actual, lo, hi) ->
       eprintfn " check-within/check-range failed: "
-      eprintfn "  Expecting range [%f, %f]" lo hi
+      eprintfn "  Expecting range [%f, %f], delta=%f" lo hi (hi - lo)
       eprintfn "  Actual: %f" actual
     | CheckWithinError(e) ->
       eprintfn "  check-within failed due to error: "
