@@ -71,6 +71,17 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
 let translation f : EvalRule = fun eval env args ->
   f args |> eval env
 
+let (|CondList|) xs =
+  let rec parse cs xs =
+    match xs with
+    | [] -> cs, None
+    | (ProperListOnly (Args2(a, b))) :: xs ->
+      match a, xs with
+      | Sym "else", [] -> cs, Some b
+      | Sym "else", _ -> failwith "else must be the last clause."
+      | _ -> parse (cs @ [a, b]) xs
+  parse [] xs
+
 let evalError name : EvalRule = fun eval env args ->
   failwithf "Unexpected %s." name
 
@@ -82,6 +93,14 @@ let evalAnd : EvalRule = translation <| fun xs ->
 
 let evalOr : EvalRule = translation <| fun xs ->
   List.fold (fun a b -> if' a True b) False xs
+
+let evalCond : EvalRule =
+  translation <| fun (CondList (cases, els)) ->
+  let elsePart =
+    match els with
+    | None -> list [Sym "error"; Str "cond ran out of cases."]
+    | Some x -> x
+  List.foldBack (fun (a, b) c -> list [Sym "if"; a; b; c]) cases elsePart
 
 let evalLet : EvalRule =
   translation <| fun (ConsOnly(ProperListOnly pairs, Body body)) ->
@@ -107,6 +126,7 @@ let standardRules =
   Map.ofList [
     "begin", evalBegin
     "if", evalIf
+    "cond", evalCond
     "lambda", evalLambda
     "define", evalDefine
     "set!", evalSet
@@ -119,5 +139,6 @@ let standardRules =
     "quasiquote", evalQuasiquote
     "unquote", evalError "unquote"
     "unquote-splicing", evalError "unquote-splicing"
+    "else", evalError "else"
   ]
 
