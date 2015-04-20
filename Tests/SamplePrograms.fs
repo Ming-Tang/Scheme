@@ -15,13 +15,13 @@ type TestFailure =
 | CheckWithinFail of actual : float * lo : float * hi : float
 | CheckWithinError of exn
 
-type TestCase = unit -> TestFailure option
+type TestCase = string * Code Expr list * (unit -> TestFailure option)
 
 let run testName =
   let testCases = new List<TestCase>()
 
   let checkExpect : EvalRule = fun eval env (ActivePatterns.Args2(a, b)) ->
-    testCases.Add <| fun() ->
+    testCases.Add <| ("check-expect", [a; b], fun() ->
       try
         let actual = eval env a
         let expected = eval env b
@@ -30,20 +30,20 @@ let run testName =
         else
           None
       with
-      | e -> Some <| CheckExpectError e
+      | e -> Some <| CheckExpectError e)
     Nil
 
   let checkError : EvalRule = fun eval env (ActivePatterns.Args1(a)) ->
-    testCases.Add <| fun() ->
+    testCases.Add <| ("check-error", [a], fun() ->
       try
         eval env a |> ignore
         Some CheckErrorFail
       with
-      | e -> None
+      | e -> None)
     Nil
 
   let checkRange : EvalRule = fun eval env (ActivePatterns.Args3(a, x, y)) ->
-    testCases.Add <| fun() ->
+    testCases.Add <| ("check-{range,within}", [a], fun() ->
       try
         let actual = eval env a
         let lo = eval env x
@@ -57,7 +57,7 @@ let run testName =
         | _, _, _ ->
           failwith "Actual value is not a number, but is %s" (Expr.format actual)
       with
-      | e -> Some <| CheckExpectError e
+      | e -> Some <| CheckExpectError e)
     Nil
 
   let checkWithin : EvalRule = Rules.translation <| fun (ActivePatterns.Args3(a, x, y)) ->
@@ -83,12 +83,14 @@ let run testName =
   |> eval standardConfig env
   |> ignore
 
-  let results = [ for test in testCases -> test() ]
-  let passes, fails = List.partition Option.isNone results
+  let results = [ for kind, args, test in testCases -> kind, args, test() ]
+  let third (_, _, c) = c
+  let isPass = third >> Option.isNone
+  let passes, fails = List.partition isPass results
 
   List.length results,
   passes.Length,
-  List.map Option.get fails
+  List.map (fun (kind, args, fail) -> kind, args, Option.get fail) fails
 
 let report name (testCount, passCount, fails) =
   let failCount = List.length fails
@@ -97,24 +99,26 @@ let report name (testCount, passCount, fails) =
   else
     printfn "%s: %d passed, %d failed" name passCount failCount
 
-  for fail in fails do
+  for kind, args, fail in fails do
+    eprintfn ""
+    eprintfn "(%s\n %s)" kind (String.concat "\n " <| List.map Expr.format args)
     match fail with
     | CheckErrorFail ->
-      eprintfn "  check-error failed: Did not encounter error."
+      eprintfn "check-error failed: Did not encounter error."
     | CheckExpectFail(actual, expected) ->
-      eprintfn " check-expect failed: "
+      eprintfn "check-expect failed: "
       eprintfn "  Expecting: %s" (Expr.format expected)
       eprintfn "  Actual: %s" (Expr.format actual)
     | CheckExpectError e ->
-      eprintfn " check-expect failed due to error: "
+      eprintfn "check-expect failed due to error: "
       eprintfn "    %s" e.Message
     | CheckWithinFail(actual, lo, hi) ->
-      eprintfn " check-within/check-range failed: "
+      eprintfn "check-within/check-range failed: "
       eprintfn "  Expecting range [%f, %f], delta=%f" lo hi (hi - lo)
       eprintfn "  Actual: %f" actual
     | CheckWithinError(e) ->
-      eprintfn "  check-within failed due to error: "
-      eprintfn "    %s" e.Message
+      eprintfn "check-within failed due to error: "
+      eprintfn "  %s" e.Message
 
   fails <> []
 

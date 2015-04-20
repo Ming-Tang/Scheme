@@ -71,17 +71,63 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
 let translation f : EvalRule = fun eval env args ->
   f args |> eval env
 
+let (|CondList|) xs =
+  let rec parse cs xs =
+    match xs with
+    | [] -> cs, None
+    | (ProperListOnly (Args2(a, b))) :: xs ->
+      match a, xs with
+      | Sym "else", [] -> cs, Some b
+      | Sym "else", _ -> failwith "else must be the last clause."
+      | _ -> parse (cs @ [a, b]) xs
+  parse [] xs
+
 let evalError name : EvalRule = fun eval env args ->
   failwithf "Unexpected %s." name
 
 let if' a b c = list [Sym "if"; a; b; c]
 let lambda args body = list [Sym "lambda"; args; body]
 
-let evalAnd : EvalRule = translation <| fun xs ->
-  List.foldBack (fun a b -> if' a b False) xs True
+let rec shortCircuit f f1 a (args : Code Expr list) : Data Expr =
+  match args with
+  | [] -> a
+  | [x] -> f1 x
+  | x :: xs -> f x (fun() -> shortCircuit f f1 a xs)
 
-let evalOr : EvalRule = translation <| fun xs ->
-  List.fold (fun a b -> if' a True b) False xs
+let evalAnd : EvalRule = fun eval env args ->
+  shortCircuit (fun (Eval eval env a) b ->
+    match a with
+    | IsTrue -> b()
+    | IsFalse -> False) (eval env) True args
+
+let evalOr : EvalRule = fun eval env args ->
+  shortCircuit (fun (Eval eval env a) b ->
+    match a with
+    | IsTrue -> a
+    | IsFalse -> b()) (eval env) False args
+
+let evalCond : EvalRule =
+  translation <| fun (CondList (cases, els)) ->
+  let elsePart =
+    match els with
+    | None -> list [Sym "error"; Str "cond ran out of cases."]
+    | Some x -> x
+  List.foldBack (fun (a, b) c -> if' a b c) cases elsePart
+
+let evalCase : EvalRule =
+  fun eval env (ConsOnly(Eval eval env value, CondList(cases, els))) ->
+  let rec evalCases cases =
+    match cases with
+    | [] ->
+      match els with
+      | None -> failwith "case ran out of cases."
+      | Some expr -> eval env expr
+    | (ProperListOnly (Args1 case), expr) :: rest ->
+      if value = (codeToData case) then
+        eval env expr
+      else
+        evalCases rest
+  evalCases cases
 
 let evalLet : EvalRule =
   translation <| fun (ConsOnly(ProperListOnly pairs, Body body)) ->
@@ -107,6 +153,8 @@ let standardRules =
   Map.ofList [
     "begin", evalBegin
     "if", evalIf
+    "cond", evalCond
+    "case", evalCase
     "lambda", evalLambda
     "define", evalDefine
     "set!", evalSet
@@ -119,5 +167,6 @@ let standardRules =
     "quasiquote", evalQuasiquote
     "unquote", evalError "unquote"
     "unquote-splicing", evalError "unquote-splicing"
+    "else", evalError "else"
   ]
 
