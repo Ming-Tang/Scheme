@@ -207,11 +207,14 @@ let isLambda : Prim = fun (Args1 x) ->
 // Env manipulation (through lambdas)
 
 let envLambda env : Data Expr =
-  let body = ProperList [Sym "error"; Str "is a env"]
+  let body = ProperList [Sym "error"; Str "Is an env."]
   Lambda(env, [], Some "xs", body)
 
 let newEnv : Prim = fun Args0 ->
   envLambda (Env.create())
+
+let extendEnv : Prim = fun (Args1(EnvOnly env)) ->
+  envLambda (Env.extend (dict []) env)
 
 let setEnv : Prim = fun (Args2(LambdaOnly(_, argList, dot, body) as lam,
                                LambdaOnly(env, _, _, _))) ->
@@ -327,6 +330,7 @@ let standardPrimitives : Primitives =
     "env?", isLambda
 
     "new-env", newEnv
+    "extend-env", extendEnv
     "set-env", setEnv
     "env-parent", envParent
     "env-has-parent?", envHasParent
