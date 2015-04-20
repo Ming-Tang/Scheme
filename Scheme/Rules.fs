@@ -112,7 +112,7 @@ let evalCond : EvalRule =
     match els with
     | None -> list [Sym "error"; Str "cond ran out of cases."]
     | Some x -> x
-  List.foldBack (fun (a, b) c -> list [if' a b c]) cases elsePart
+  List.foldBack (fun (a, b) c -> if' a b c) cases elsePart
 
 let evalCase : EvalRule =
   fun eval env (ConsOnly(Eval eval env value, CondList(cases, els))) ->
