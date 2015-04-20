@@ -88,11 +88,23 @@ let evalError name : EvalRule = fun eval env args ->
 let if' a b c = list [Sym "if"; a; b; c]
 let lambda args body = list [Sym "lambda"; args; body]
 
-let evalAnd : EvalRule = translation <| fun xs ->
-  List.foldBack (fun a b -> if' a b False) xs True
+let rec shortCircuit f f1 a (args : Code Expr list) : Data Expr =
+  match args with
+  | [] -> a
+  | [x] -> f1 x
+  | x :: xs -> f x (fun() -> shortCircuit f f1 a xs)
 
-let evalOr : EvalRule = translation <| fun xs ->
-  List.fold (fun a b -> if' a True b) False xs
+let evalAnd : EvalRule = fun eval env args ->
+  shortCircuit (fun (Eval eval env a) b ->
+    match a with
+    | IsTrue -> b()
+    | IsFalse -> False) (eval env) True args
+
+let evalOr : EvalRule = fun eval env args ->
+  shortCircuit (fun (Eval eval env a) b ->
+    match a with
+    | IsTrue -> a
+    | IsFalse -> b()) (eval env) False args
 
 let evalCond : EvalRule =
   translation <| fun (CondList (cases, els)) ->
@@ -100,7 +112,7 @@ let evalCond : EvalRule =
     match els with
     | None -> list [Sym "error"; Str "cond ran out of cases."]
     | Some x -> x
-  List.foldBack (fun (a, b) c -> list [Sym "if"; a; b; c]) cases elsePart
+  List.foldBack (fun (a, b) c -> list [if' a b c]) cases elsePart
 
 let evalCase : EvalRule =
   fun eval env (ConsOnly(Eval eval env value, CondList(cases, els))) ->
