@@ -102,6 +102,21 @@ let evalCond : EvalRule =
     | Some x -> x
   List.foldBack (fun (a, b) c -> list [Sym "if"; a; b; c]) cases elsePart
 
+let evalCase : EvalRule =
+  fun eval env (ConsOnly(Eval eval env value, CondList(cases, els))) ->
+  let rec evalCases cases =
+    match cases with
+    | [] ->
+      match els with
+      | None -> failwith "case ran out of cases."
+      | Some expr -> eval env expr
+    | (ProperListOnly (Args1 case), expr) :: rest ->
+      if value = (codeToData case) then
+        eval env expr
+      else
+        evalCases rest
+  evalCases cases
+
 let evalLet : EvalRule =
   translation <| fun (ConsOnly(ProperListOnly pairs, Body body)) ->
   let vars, vals =
@@ -127,6 +142,7 @@ let standardRules =
     "begin", evalBegin
     "if", evalIf
     "cond", evalCond
+    "case", evalCase
     "lambda", evalLambda
     "define", evalDefine
     "set!", evalSet
