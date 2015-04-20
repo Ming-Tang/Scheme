@@ -8,7 +8,7 @@
 (check-expect (and #t #f) #f)
 (check-expect (and #t #t) #t)
 (check-expect (and #f #f #f (/ 1 0)) #f)
-(check-expect (and 10 #f) 10)
+(check-expect (and 10 #f) #f)
 (check-error (and #t (/ 1 0)))
 
 (check-expect (or #f #f) #f)
@@ -16,6 +16,7 @@
 (check-expect (or #f #t) #t)
 (check-expect (or #t #t) #t)
 (check-expect (or #f #f 0 (/ 1 0)) 0)
+(check-expect (or 10 #f) 10)
 (check-expect (or #t (/ 1 0)) #t)
 
 (check-expect (if #t 1 0) 1)
