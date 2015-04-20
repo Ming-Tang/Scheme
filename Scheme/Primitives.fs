@@ -113,6 +113,9 @@ let stringAppend : Prim = List.fold (fun s (StrOnly t) -> s + t) "" >> Str
 let substring : Prim = fun (Args3(StrOnly s, IntOnly m, IntOnly n)) ->
   s.Substring(m, n - m) |> Str
 
+let stringToSymbol : Prim = fun (Args1(StrOnly s)) -> Sym s
+let symbolToString : Prim = fun (Args1(SymOnly s)) -> Str s
+
 let not' : Prim = fun (Args1 x) ->
   match x with
   | IsTrue -> False
@@ -237,6 +240,9 @@ let standardPrimitives : Primitives =
     "string-ref", stringRef
     "string-append", stringAppend
     "substring", substring
+
+    "string->symbol", stringToSymbol
+    "symbol->string", symbolToString
 
     "false?", not'
     "not", not'
