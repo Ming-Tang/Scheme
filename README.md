@@ -27,10 +27,6 @@ changes.
 - [X] `let`, `local`
 - [X] `unset!`
 - [ ] `load` for loading files
-- [ ] Scope manipulation: The scope/env attached to a lambda
-    - [ ] Create scope
-    - [ ] View and modify scope variables
-    - [ ] Manipulate scope pointers
-    - [ ] Manipulate scopes of lambdas
-    - [ ] Apply function on scope
+- [X] Scope manipulation: The scope/env attached to a lambda
+
 
