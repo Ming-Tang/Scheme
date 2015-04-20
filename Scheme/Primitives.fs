@@ -135,6 +135,8 @@ let list : Prim = ProperList
 
 let equals : Prim = fun (Args2(a, b)) -> createBool (a = b)
 
+let eq : Prim = fun (Args2(a, b)) -> createBool (Object.ReferenceEquals(a, b))
+
 let error : Prim = fun xs ->
   let join = List.map Expr.format >> String.concat " "
   match xs with
@@ -250,7 +252,7 @@ let standardPrimitives : Primitives =
 
     "equal?", equals
     "eqv?", equals
-    "eq?", equals
+    "eq?", eq
     "boolean?", isBoolean
     "number?", isNumber
     "real?", isReal
