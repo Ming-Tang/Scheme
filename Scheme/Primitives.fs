@@ -113,6 +113,9 @@ let stringAppend : Prim = List.fold (fun s (StrOnly t) -> s + t) "" >> Str
 let substring : Prim = fun (Args3(StrOnly s, IntOnly m, IntOnly n)) ->
   s.Substring(m, n - m) |> Str
 
+let stringToSymbol : Prim = fun (Args1(StrOnly s)) -> Sym s
+let symbolToString : Prim = fun (Args1(SymOnly s)) -> Str s
+
 let not' : Prim = fun (Args1 x) ->
   match x with
   | IsTrue -> False
@@ -134,6 +137,8 @@ let cdr : Prim = fun (Args1 x) ->
 let list : Prim = ProperList
 
 let equals : Prim = fun (Args2(a, b)) -> createBool (a = b)
+
+let eq : Prim = fun (Args2(a, b)) -> createBool (Object.ReferenceEquals(a, b))
 
 let error : Prim = fun xs ->
   let join = List.map Expr.format >> String.concat " "
@@ -199,6 +204,59 @@ let isLambda : Prim = fun (Args1 x) ->
   | Prim _ | Lambda(_, _, _, _) -> True
   | _ -> False
 
+// Env manipulation (through lambdas)
+
+let envLambda env : Data Expr =
+  let body = ProperList [Sym "error"; Str "Is an env."]
+  Lambda(env, [], Some "xs", body)
+
+let newEnv : Prim = fun Args0 ->
+  envLambda (Env.create())
+
+let extendEnv : Prim = fun (Args1(EnvOnly env)) ->
+  envLambda (Env.extend (dict []) env)
+
+let setEnv : Prim = fun (Args2(LambdaOnly(_, argList, dot, body) as lam,
+                               LambdaOnly(env, _, _, _))) ->
+  Lambda(env, argList, dot, body)
+
+let envParent : Prim = fun (Args1(EnvOnly env)) ->
+  match env.Parent with
+  | None -> failwith "Env does not have a parent."
+  | Some p -> envLambda p
+
+let envHasParent : Prim = fun (Args1(EnvOnly env)) ->
+  createBool (Option.isSome env.Parent)
+
+let envSetParent : Prim = fun (Args2(EnvOnly env, EnvOnly newParent)) ->
+  envLambda (env |> Env.setParent newParent)
+
+let envRemoveParent : Prim = fun (Args1(EnvOnly env)) ->
+  envLambda (Env.removeParent env)
+
+let envContains : Prim = fun (Args2(EnvOnly env, SymOnly name)) ->
+  createBool (Env.lookup name env |> Option.isSome)
+
+let envGet : Prim = fun (Args2(EnvOnly env, SymOnly name)) ->
+  match Env.lookup name env with
+  | Some v -> v
+  | None -> failwithf "Name not found: %s" name
+
+let envSet : Prim = fun (Args3(EnvOnly env, SymOnly name, value)) ->
+  Env.set name value env
+  Nil
+
+let envUnset : Prim = fun (Args2(EnvOnly env, SymOnly name)) ->
+  Env.delete name env |> ignore
+  Nil
+
+let envSymbols : Prim = fun (Args1(EnvOnly env)) ->
+  Env.symbols env |> Set.toList
+  |> List.map Sym |> ProperList
+
+let envCount : Prim = fun (Args1(EnvOnly env)) ->
+  Int (Env.count env)
+
 let standardPrimitives : Primitives =
   Map.ofList [
     "+", add
@@ -236,6 +294,9 @@ let standardPrimitives : Primitives =
     "string-append", stringAppend
     "substring", substring
 
+    "string->symbol", stringToSymbol
+    "symbol->string", symbolToString
+
     "false?", not'
     "not", not'
 
@@ -250,7 +311,7 @@ let standardPrimitives : Primitives =
 
     "equal?", equals
     "eqv?", equals
-    "eq?", equals
+    "eq?", eq
     "boolean?", isBoolean
     "number?", isNumber
     "real?", isReal
@@ -266,6 +327,21 @@ let standardPrimitives : Primitives =
     "symbol?", isSymbol
     "lambda?", isLambda
     "proc?", isLambda
+    "env?", isLambda
+
+    "new-env", newEnv
+    "extend-env", extendEnv
+    "set-env", setEnv
+    "env-parent", envParent
+    "env-has-parent?", envHasParent
+    "env-set-parent", envSetParent
+    "env-remove-parent", envRemoveParent
+    "env-contains?", envContains
+    "env-get", envGet
+    "env-set!", envSet
+    "env-unset!", envUnset
+    "env-symbols", envSymbols
+    "env-count", envCount
   ]
 
 let standardSymbols : SymbolTable =
