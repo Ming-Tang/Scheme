@@ -80,6 +80,13 @@ let (|SymOnly|) arg =
   | Sym s -> s
   | _ -> failwith "Expecting a symbol."
 
+let (|LambdaOnly|) arg =
+  match arg with
+  | Lambda(env, argList, dot, body) -> env, argList, dot, body
+  | _ -> failwith "Expecting a lambda."
+
+let (|EnvOnly|) (LambdaOnly(env, _, _, _)) = env
+
 let (|Body|) args =
   match args with
   | [] -> failwith "Body cannot be empty."

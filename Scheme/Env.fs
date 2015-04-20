@@ -18,6 +18,12 @@ module Env =
     { Env.Symbols = dic
       Parent = None }
 
+  let parent ({ Env.Parent = parent }) = parent
+
+  let setParent parent env = { env with Env.Parent = Some parent }
+
+  let removeParent env = { env with Env.Parent = None }
+
   /// Find the innermost scope that contains the name, None if not found
   let rec find name ({ Env.Symbols = symbols; Parent = parent } as env) =
     let found, value = symbols.TryGetValue(name)
@@ -52,7 +58,20 @@ module Env =
     | Some env -> env.Symbols.Remove(name)
     | None -> false
 
+  /// Get the set of symbols that can be looked up in the env
+  let symbols env =
+    let rec symbols' sset { Symbols = ss; Parent = p } =
+      let sset = Set.union (Set.ofSeq ss.Keys) sset
+      match p with
+      | None -> sset
+      | Some parent -> symbols' sset parent
+    symbols' Set.empty env
+
+  /// Count the number of symbols that can be looked up in the env
+  let count env = symbols env |> Set.count
+
   /// Extend an environment by adding another innermost scope
   let extend (symbols : #SymbolTable) env =
     { Env.Symbols = Dictionary(dictionary=symbols)
       Parent = Some env }
+

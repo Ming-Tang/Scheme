@@ -204,6 +204,56 @@ let isLambda : Prim = fun (Args1 x) ->
   | Prim _ | Lambda(_, _, _, _) -> True
   | _ -> False
 
+// Env manipulation (through lambdas)
+
+let envLambda env : Data Expr =
+  let body = ProperList [Sym "error"; Str "is a env"]
+  Lambda(env, [], Some "xs", body)
+
+let newEnv : Prim = fun Args0 ->
+  envLambda (Env.create())
+
+let setEnv : Prim = fun (Args2(LambdaOnly(_, argList, dot, body) as lam,
+                               LambdaOnly(env, _, _, _))) ->
+  Lambda(env, argList, dot, body)
+
+let envParent : Prim = fun (Args1(EnvOnly env)) ->
+  match env.Parent with
+  | None -> failwith "Env does not have a parent."
+  | Some p -> envLambda p
+
+let envHasParent : Prim = fun (Args1(EnvOnly env)) ->
+  createBool (Option.isSome env.Parent)
+
+let envSetParent : Prim = fun (Args2(EnvOnly env, EnvOnly newParent)) ->
+  envLambda (env |> Env.setParent newParent)
+
+let envRemoveParent : Prim = fun (Args1(EnvOnly env)) ->
+  envLambda (Env.removeParent env)
+
+let envContains : Prim = fun (Args2(EnvOnly env, SymOnly name)) ->
+  createBool (Env.lookup name env |> Option.isSome)
+
+let envGet : Prim = fun (Args2(EnvOnly env, SymOnly name)) ->
+  match Env.lookup name env with
+  | Some v -> v
+  | None -> failwithf "Name not found: %s" name
+
+let envSet : Prim = fun (Args3(EnvOnly env, SymOnly name, value)) ->
+  Env.set name value env
+  Nil
+
+let envUnset : Prim = fun (Args2(EnvOnly env, SymOnly name)) ->
+  Env.delete name env |> ignore
+  Nil
+
+let envSymbols : Prim = fun (Args1(EnvOnly env)) ->
+  Env.symbols env |> Set.toList
+  |> List.map Sym |> ProperList
+
+let envCount : Prim = fun (Args1(EnvOnly env)) ->
+  Int (Env.count env)
+
 let standardPrimitives : Primitives =
   Map.ofList [
     "+", add
@@ -274,6 +324,20 @@ let standardPrimitives : Primitives =
     "symbol?", isSymbol
     "lambda?", isLambda
     "proc?", isLambda
+    "env?", isLambda
+
+    "new-env", newEnv
+    "set-env", setEnv
+    "env-parent", envParent
+    "env-has-parent?", envHasParent
+    "env-set-parent", envSetParent
+    "env-remove-parent", envRemoveParent
+    "env-contains?", envContains
+    "env-get", envGet
+    "env-set!", envSet
+    "env-unset!", envUnset
+    "env-symbols", envSymbols
+    "env-count", envCount
   ]
 
 let standardSymbols : SymbolTable =
