@@ -7,6 +7,8 @@
 (define true #t)
 (define false #f)
 
+(define (void . xs) nil)
+
 (define (add1 x) (+ 1 x))
 (define (sub1 x) (- x 1))
 
