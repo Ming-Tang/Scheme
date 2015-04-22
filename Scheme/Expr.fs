@@ -52,16 +52,15 @@ let decomposeList xs =
 let (|ProperImproperList|) xs =
   decomposeList xs
 
-/// Construct a (begin ...) block from a list of exprs
-let Begin xs =
-  ProperList (Sym "begin" :: xs)
-
 /// Determine if a value should be considered true or false
 /// Only the symbol false is false
 let (|IsTrue|IsFalse|) expr =
   match expr with
   | False -> IsFalse
   | _ -> IsTrue
+
+let Begin xs = list (Sym "begin" :: xs)
+let Quote x = list [Sym "quote"; x]
 
 let createBool b =
   if b then True else False
