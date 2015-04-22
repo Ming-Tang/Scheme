@@ -4,6 +4,15 @@ open System.Collections.Generic
 open Scheme
 open Scheme.ActivePatterns
 
+/// Construct a (begin ...) block from a list of exprs
+let Begin xs = ProperList (Sym "begin" :: xs)
+
+/// Quote an expr
+let Quote xs = ProperList [Sym "quote"; xs]
+
+/// Unquote an expr
+let Unquote xs = ProperList [Sym "unquote"; xs]
+
 let evalBegin : EvalRule = fun eval env args ->
   List.fold (fun _ b -> eval env b) Nil args
 
@@ -129,17 +138,36 @@ let evalCase : EvalRule =
         evalCases rest
   evalCases cases
 
+let (|BindingList|) (ProperListOnly pairs) =
+  pairs
+  |> List.map (
+    function
+    | ProperList [ Sym name; value ] -> name, value
+    | _ -> failwith "Invalid binding list.")
+
 let evalLet : EvalRule =
-  translation <| fun (ConsOnly(ProperListOnly pairs, Body body)) ->
-  let vars, vals =
-    pairs
-    |> List.map (
-      function
-      | ProperList [ Sym name; value ] -> name, value
-      | _ -> failwith "Invalid let form.")
-    |> List.unzip
+  translation <| fun (ConsOnly(BindingList bindings, Body body)) ->
+  let vars, vals = List.unzip bindings
   Cons(lambda (list (List.map Sym vars)) body,
        list vals)
+
+let evalLetStar : EvalRule =
+  translation <| fun (ConsOnly(BindingList bindings, Body body)) ->
+  List.foldBack (fun (var, expr) body ->
+    Cons(lambda (list [Sym var]) body, list [expr])
+  ) bindings body
+
+let evalLetRec : EvalRule =
+  translation <| fun (ConsOnly(BindingList bindings, Body body)) ->
+  let vars, vals = List.unzip bindings
+  let placeholders = List.map (fun _ -> Quote Nil) bindings
+  let assignments =
+    bindings
+    |> List.map (fun (var, value) -> list [Sym "set!"; Sym var; value])
+    |> Begin
+  let body' = Begin [assignments; body]
+  Cons(lambda (list (List.map Sym vars)) body',
+       list placeholders)
 
 let evalLocal : EvalRule = fun eval env (ConsOnly(ProperListOnly defs, Body body)) ->
   let local = Env.extend Map.empty env
@@ -162,6 +190,8 @@ let standardRules =
     "and", evalAnd
     "or", evalOr
     "let", evalLet
+    "let*", evalLetStar
+    "letrec", evalLetRec
     "local", evalLocal
     "quote", evalQuote
     "quasiquote", evalQuasiquote

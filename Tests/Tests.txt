@@ -1,1 +1,1 @@
-church functionArguments mcons quotesAndQuasiquotes strings math env logicAndConditional
+church functionArguments mcons quotesAndQuasiquotes strings math env logicAndConditional localScoping
