@@ -21,11 +21,11 @@ changes.
 - [ ] `define-macro`, `gensym`: Add evaluation rules while running
 - [X] `error`
 - [X] `cond`, `case`
-- [ ] `display`, `write`, `print`
+- [ ] `display`, `write`, `printf`, `newline`
 - [X] String manipulation and math functions
 - [X] `mcons`: mutable cons cells
 - [X] `local`
-- [ ] `let`, `let*`, `letrec`
+- [X] `let`, `let*`, `letrec`
 - [X] `unset!`
 - [ ] `load` for loading files
 - [X] Scope manipulation: The scope/env attached to a lambda
