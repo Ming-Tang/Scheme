@@ -24,7 +24,8 @@ changes.
 - [ ] `display`, `write`, `print`
 - [X] String manipulation and math functions
 - [X] `mcons`: mutable cons cells
-- [X] `let`, `local`
+- [X] `local`
+- [ ] `let`, `let*`, `letrec`
 - [X] `unset!`
 - [ ] `load` for loading files
 - [X] Scope manipulation: The scope/env attached to a lambda
