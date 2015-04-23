@@ -327,6 +327,7 @@ let standardPrimitives : Primitives =
     "symbol?", isSymbol
     "lambda?", isLambda
     "proc?", isLambda
+    "procedure?", isLambda
     "env?", isLambda
 
     "new-env", newEnv

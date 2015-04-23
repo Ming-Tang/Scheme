@@ -14,7 +14,7 @@
 
 (define (foldl f x0 xs)
   (if (empty? xs) x0
-    (foldl f (f x0 (car xs))
+    (foldl f (f (car xs) x0)
            (cdr xs))))
 
 (define (foldr f x0 xs)
@@ -25,8 +25,20 @@
   (foldr (lambda (y ys) (cons (f y) ys))
          empty xs))
 
+(define (filter pred xs)
+  (if (empty? xs) xs
+    (if (pred (car xs))
+      (cons (car xs) (filter pred (cdr xs)))
+      (filter pred (cdr xs)))))
+
+(define (reverse xs)
+  (foldl cons empty xs))
+
 (define (length xs)
-  (foldl add1 0 xs))
+  (foldr (lambda (a b) (+ 1 b)) 0 xs))
+
+(define first car)
+(define rest cdr)
 
 (define (caar x)
   (car (car x)))
