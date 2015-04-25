@@ -46,7 +46,7 @@ let rec evalDefine : EvalRule = fun eval env args ->
                    "or (define (func args...) body...)."
 
 let evalApply : EvalRule = fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
-  eval env (Cons(f, dataToCode (list xs)))
+  eval env (Cons(f, dataToCode (list (List.map Quote xs))))
 
 let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
                                               Eval eval env value)) ->
