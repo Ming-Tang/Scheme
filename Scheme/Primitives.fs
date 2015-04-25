@@ -6,6 +6,9 @@ open System.Reflection
 open Scheme
 open Scheme.ActivePatterns
 
+/// Given a binary operation for integers and a binary operation for reals,
+/// produce a function that require two numeric values, covert both into
+/// the max of two types (Real > Int) and performs the operation for the type
 let inline numericOp' intOp realOp =
   fun a b ->
     match a, b with
@@ -16,14 +19,18 @@ let inline numericOp' intOp realOp =
     | (Real _ | Int _), x
     | x, _ -> failwithf "Non-numeric argument found: %s" (Expr.format x)
 
+/// Create a binary numeric operation that takes two ints or reals, and return
+/// the int or real themselves
 let inline numericOp intOp realOp =
   numericOp' (fun a b -> intOp a b |> Int)
              (fun a b -> realOp a b |> Real)
 
+/// Create a binary numeric operation that returns booleans
 let inline numericOpB intOp realOp =
   numericOp' (fun a b -> intOp a b |> createBool)
              (fun a b -> realOp a b |> createBool)
 
+/// Equality for numeric types
 let numEqBinary =
   fun a b ->
     match a, b with
@@ -33,23 +40,28 @@ let numEqBinary =
     | (Real _ | Int _), x
     | x, _ -> failwithf "Non-numeric argument found: %s" (Expr.format x)
 
+/// Create an n-ary numeric operation that fold using binary ops from left
 let inline numeric init intOp realOp : Prim =
   let op = numericOp intOp realOp
   List.fold op init
 
+/// Given an unary operation for integers and reals, produce a function
+/// that requires a numeric, and returns one of the functions applied on it,
+/// depending on the type (Int, Real) of the input
 let inline numericUnOp' intOp realOp = fun (Args1(x)) ->
   match x with
   | Int i -> intOp i
   | Real r -> realOp r
   | x -> failwith "Non-numeric argument: %s" (Expr.format x)
 
+/// Create a numeric unary operation that return int or real itself
 let inline numericUnOp intOp realOp =
   numericUnOp' (intOp >> Int) (realOp >> Real)
 
 /// Require two or more arguments
 let req2OrMore (Args2OrMore xs) = xs
 
-/// Chain comparison
+/// Create a chain comparison operator
 let chainOp bin =
   fun (Args2OrMore xs) ->
     Seq.windowed 2 xs
@@ -70,6 +82,8 @@ let unaryOrNary un n : Prim = fun args ->
   match args with
   | [_] -> un args
   | _ -> n args
+
+// Numbers
 
 let add : Prim = List.fold (numericOp (+) (+)) (Int 0)
 let sub : Prim = List.reduce (numericOp (-) (-))
@@ -114,6 +128,7 @@ let expt : Prim = fun (Args2(a, b)) ->
   | Real r, Real p -> r ** p |> Real
   | _, _ -> failwith "expt: Expecting two numeric arguments"
 
+// String Manipulation
 
 let stringLength : Prim = fun (Args1(StrOnly s)) -> Int s.Length
 let stringRef : Prim = fun (Args2(StrOnly s, IntOnly i)) -> Str (string s.[i])
@@ -124,10 +139,14 @@ let substring : Prim = fun (Args3(StrOnly s, IntOnly m, IntOnly n)) ->
 let stringToSymbol : Prim = fun (Args1(StrOnly s)) -> Sym s
 let symbolToString : Prim = fun (Args1(SymOnly s)) -> Str s
 
+// Logical Operators
+
 let not' : Prim = fun (Args1 x) ->
   match x with
   | IsTrue -> False
   | IsFalse -> True
+
+// Pairs
 
 let cons : Prim = fun (Args2(hd, tl)) ->
   Cons(hd, tl)
@@ -144,9 +163,13 @@ let cdr : Prim = fun (Args1 x) ->
 
 let list : Prim = ProperList
 
+// Equality
+
 let equals : Prim = fun (Args2(a, b)) -> createBool (a = b)
 
 let eq : Prim = fun (Args2(a, b)) -> createBool (Object.ReferenceEquals(a, b))
+
+// Error Reporting and Outputs
 
 let error : Prim = fun xs ->
   let join = List.map Expr.format >> String.concat " "
@@ -156,6 +179,8 @@ let error : Prim = fun xs ->
   | [Str msg] ->
     failwith msg
   | _ -> failwith "error"
+
+// Type determiniation
 
 let isNumber : Prim = fun (Args1 x) ->
   match x with
@@ -212,7 +237,7 @@ let isLambda : Prim = fun (Args1 x) ->
   | Prim _ | Lambda(_, _, _, _) -> True
   | _ -> False
 
-// Env manipulation (through lambdas)
+// Env manipulation
 
 let envLambda env : Data Expr =
   let body = ProperList [Sym "error"; Str "Is an env."]
