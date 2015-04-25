@@ -134,8 +134,11 @@ let evalCase : EvalRule =
       match els with
       | None -> Nil
       | Some expr -> eval env expr
-    | (ProperListOnly (Args1 case), expr) :: rest ->
-      if value = (codeToData case) then
+    | (ProperListOnly cases, expr) :: rest ->
+      if cases
+         |> List.tryFind (codeToData >> (=) value)
+         |> Option.isSome
+      then
         eval env expr
       else
         evalCases rest
