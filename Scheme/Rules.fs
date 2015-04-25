@@ -122,7 +122,7 @@ let evalCond : EvalRule =
   translation <| fun (CondList (cases, els)) ->
   let elsePart =
     match els with
-    | None -> list [Sym "error"; Str "cond ran out of cases."]
+    | None -> Quote Nil
     | Some x -> x
   List.foldBack (fun (a, b) c -> if' a b c) cases elsePart
 
@@ -132,7 +132,7 @@ let evalCase : EvalRule =
     match cases with
     | [] ->
       match els with
-      | None -> failwith "case ran out of cases."
+      | None -> Nil
       | Some expr -> eval env expr
     | (ProperListOnly (Args1 case), expr) :: rest ->
       if value = (codeToData case) then
