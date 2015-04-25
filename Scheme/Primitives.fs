@@ -65,10 +65,18 @@ let roundOp f = numericUnOp' id (f >> int) >> Int
 /// An operation that act on reals and return reals
 let realOp f = numericUnOp' (float >> f) f >> Real
 
+/// An operator that is both unary and n-ary
+let unaryOrNary un n : Prim = fun args ->
+  match args with
+  | [_] -> un args
+  | _ -> n args
+
 let add : Prim = List.fold (numericOp (+) (+)) (Int 0)
 let sub : Prim = List.reduce (numericOp (-) (-))
+                 |> unaryOrNary (numericUnOp (~-) (~-))
 let mul : Prim = List.fold (numericOp ( * ) ( * )) (Int 1)
 let div : Prim = List.reduce (numericOp (/) (/))
+                 |> unaryOrNary (numericUnOp ((/) 1) ((/) 1.0))
 let quotient : Prim = intBinOp (/)
 let remainder : Prim = intBinOp (%)
 let modulo : Prim = intBinOp (fun n m -> ((n % m) + m) % m)

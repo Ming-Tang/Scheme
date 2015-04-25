@@ -39,7 +39,6 @@
 (define (force p)
   ((cadr p)))
 
-
 (define (promise? x)
   (and (cons? x)
        (equal? (car x) '*promise*)
