@@ -6,11 +6,57 @@
 (define empty '())
 (define true #t)
 (define false #f)
-
 (define (void . xs) nil)
+
+;; Function manipulation
+
+(define (id x) x)
+(define identity id)
+
+(define (apply f xs)
+  (*apply f xs))
+
+(define (compose f g)
+  (lambda xs (f (apply g xs))))
+
+(define (curry f . xs)
+  (lambda ys (apply f (append xs ys))))
+
+;; Promises
+
+(define (make-promise f)
+  (let ([evaluated false]
+        [value nil])
+    (list '*promise*
+          (lambda ()
+            (if evaluated
+              value
+              (begin
+                (set! value (f))
+                (set! evaluated true)
+                value))))))
+
+(define (force p)
+  ((cadr p)))
+
+
+(define (promise? x)
+  (and (cons? x)
+       (equal? (car x) '*promise*)
+       (cons? (cdr x))
+       (lambda? (cadr x))
+       (nil? (cddr x))))
+
+;; Number functions
+
+(define zero? (curry = 0))
+(define positive? (curry < 0))
+(define negative? (curry > 0))
 
 (define (add1 x) (+ 1 x))
 (define (sub1 x) (- x 1))
+
+;; List functions
 
 (define (foldl f x0 xs)
   (if (empty? xs) x0
@@ -72,11 +118,11 @@
   (define (get) (cons a b))
   (define (set-mcar! aa) (set! a aa))
   (define (set-mcdr! bb) (set! b bb))
-  `(mcons ,get ,set-mcar! ,set-mcdr!))
+  (list *mcons* get set-mcar! set-mcdr!))
 
 (define (mcons? x)
   (and (cons? x)
-       (equal? (car x) 'mcons)
+       (equal? (car x) '*mcons*)
        (cons? (cdr x))
        (lambda? (cadr x))
        (cons? (cddr x))

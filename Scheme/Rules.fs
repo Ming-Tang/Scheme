@@ -45,6 +45,9 @@ let rec evalDefine : EvalRule = fun eval env args ->
   | _ -> failwithf "Must be in the form of (define var value) %s"
                    "or (define (func args...) body...)."
 
+let evalApply : EvalRule = fun eval env (Args2(f, xs)) ->
+  eval env (Cons(f, xs))
+
 let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
                                               Eval eval env value)) ->
   Env.set var value env
@@ -177,24 +180,38 @@ let evalLocal : EvalRule = fun eval env (ConsOnly(ProperListOnly defs, Body body
     | _ -> failwith "Not a define in local body"
   eval local body
 
+let evalDelay : EvalRule =
+  translation <| fun (Args1(expr)) ->
+  list [Sym "make-promise"; lambda Nil expr]
+
+
 let standardRules =
   Map.ofList [
     "begin", evalBegin
+    "delay", evalDelay
+
     "if", evalIf
     "cond", evalCond
     "case", evalCase
-    "lambda", evalLambda
-    "define", evalDefine
-    "set!", evalSet
-    "unset!", evalUnset
+
     "and", evalAnd
     "or", evalOr
+
+    "lambda", evalLambda
+    "define", evalDefine
+    "*apply", evalApply
+
+    "set!", evalSet
+    "unset!", evalUnset
+
     "let", evalLet
     "let*", evalLetStar
     "letrec", evalLetRec
     "local", evalLocal
+
     "quote", evalQuote
     "quasiquote", evalQuasiquote
+
     "unquote", evalError "unquote"
     "unquote-splicing", evalError "unquote-splicing"
     "else", evalError "else"
