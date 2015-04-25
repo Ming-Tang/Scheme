@@ -7,6 +7,7 @@
 (define true #t)
 (define false #f)
 (define (void . xs) nil)
+(define (list . xs) xs)
 
 ;; Function manipulation
 
