@@ -118,7 +118,7 @@
   (define (get) (cons a b))
   (define (set-mcar! aa) (set! a aa))
   (define (set-mcdr! bb) (set! b bb))
-  (list *mcons* get set-mcar! set-mcdr!))
+  (list '*mcons* get set-mcar! set-mcdr!))
 
 (define (mcons? x)
   (and (cons? x)
