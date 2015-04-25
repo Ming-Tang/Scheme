@@ -83,6 +83,9 @@
 (define (length xs)
   (foldr (lambda (a b) (+ 1 b)) 0 xs))
 
+(define (append xs ys)
+  (foldr cons ys xs))
+
 (define first car)
 (define rest cdr)
 
