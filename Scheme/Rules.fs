@@ -45,8 +45,8 @@ let rec evalDefine : EvalRule = fun eval env args ->
   | _ -> failwithf "Must be in the form of (define var value) %s"
                    "or (define (func args...) body...)."
 
-let evalApply : EvalRule = fun eval env (Args2(f, xs)) ->
-  eval env (Cons(f, xs))
+let evalApply : EvalRule = fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
+  eval env (Cons(f, dataToCode (list xs)))
 
 let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
                                               Eval eval env value)) ->
