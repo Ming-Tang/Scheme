@@ -26,11 +26,30 @@
 
 (check-expect (cond [#t 1]) 1)
 (check-expect (cond [#f 0] [#t 1]) 1)
+(check-expect (cond [#f 0] [#f 1]) (void))
 (check-expect (cond [#f 0] [#f 1] [#t 2] [else 3]) 2)
 (check-expect (cond [#f 0] [#f 1] [#f 2] [else 3]) 3)
 
 (check-expect (case 0 [(0) 1]) 1)
 (check-expect (case 'abc [else 1]) 1)
 (check-expect (case 'abc [(abc) 1]) 1)
-(check-expect (case 'ghi [(abc) 1] [(def) 2] [(ghi) 3]) 3)
-(check-expect (case 'jkl [(abc) 1] [(def) 2] [(ghi) 3] [else 4]) 4)
+(check-expect (case 'ghi
+                [(abc) 1]
+                [(def) 2])
+              (void))
+(check-expect (case 'ghi
+                [(abc) 1]
+                [(def) 2]
+                [(ghi) 3])
+              3)
+(check-expect (case 'jkl
+                [(abc) 1]
+                [(def) 2]
+                [(ghi) 3]
+                [else 4])
+              4)
+(check-expect (case 'jkl
+                [(abc def ghi) 1]
+                [(ghi jkl mno) 2]
+                [else 3])
+              2)

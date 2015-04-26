@@ -45,6 +45,9 @@ let rec evalDefine : EvalRule = fun eval env args ->
   | _ -> failwithf "Must be in the form of (define var value) %s"
                    "or (define (func args...) body...)."
 
+let evalApply : EvalRule = fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
+  eval env (Cons(f, dataToCode (list (List.map Quote xs))))
+
 let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
                                               Eval eval env value)) ->
   Env.set var value env
@@ -119,7 +122,7 @@ let evalCond : EvalRule =
   translation <| fun (CondList (cases, els)) ->
   let elsePart =
     match els with
-    | None -> list [Sym "error"; Str "cond ran out of cases."]
+    | None -> Quote Nil
     | Some x -> x
   List.foldBack (fun (a, b) c -> if' a b c) cases elsePart
 
@@ -129,10 +132,13 @@ let evalCase : EvalRule =
     match cases with
     | [] ->
       match els with
-      | None -> failwith "case ran out of cases."
+      | None -> Nil
       | Some expr -> eval env expr
-    | (ProperListOnly (Args1 case), expr) :: rest ->
-      if value = (codeToData case) then
+    | (ProperListOnly cases, expr) :: rest ->
+      if cases
+         |> List.tryFind (codeToData >> (=) value)
+         |> Option.isSome
+      then
         eval env expr
       else
         evalCases rest
@@ -177,24 +183,38 @@ let evalLocal : EvalRule = fun eval env (ConsOnly(ProperListOnly defs, Body body
     | _ -> failwith "Not a define in local body"
   eval local body
 
+let evalDelay : EvalRule =
+  translation <| fun (Args1(expr)) ->
+  list [Sym "make-promise"; lambda Nil expr]
+
+
 let standardRules =
   Map.ofList [
     "begin", evalBegin
+    "delay", evalDelay
+
     "if", evalIf
     "cond", evalCond
     "case", evalCase
-    "lambda", evalLambda
-    "define", evalDefine
-    "set!", evalSet
-    "unset!", evalUnset
+
     "and", evalAnd
     "or", evalOr
+
+    "lambda", evalLambda
+    "define", evalDefine
+    "*apply", evalApply
+
+    "set!", evalSet
+    "unset!", evalUnset
+
     "let", evalLet
     "let*", evalLetStar
     "letrec", evalLetRec
     "local", evalLocal
+
     "quote", evalQuote
     "quasiquote", evalQuasiquote
+
     "unquote", evalError "unquote"
     "unquote-splicing", evalError "unquote-splicing"
     "else", evalError "else"
