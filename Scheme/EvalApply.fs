@@ -14,7 +14,7 @@ module Eval =
       match expr with
       | False | True | Int _ | Real _ | Str _
       | Lambda(_, _, _, _) -> Some(Expr.codeToData expr)
-      | Prim _ | Sym _ | Cons _ | Nil  -> None
+      | Macro _ | Prim _ | Sym _ | Cons _ | Nil  -> None
 
     let (|RuleMatch|_|) expr =
       match expr with

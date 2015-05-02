@@ -118,6 +118,7 @@ let rec toSExprView expr =
   | Sym s -> SExprView.SymV s
   | Prim s -> SExprView.SymV (sprintf "#<primitive:%s>" s)
   | Lambda(_, _, _, _) -> SExprView.SymV "#<lambda>"
+  | Macro(_, _, _, _) -> SExprView.SymV "#<macro>"
   | ProperList [Sym "quote"; q] ->
     SExprView.QuoteV (toSExprView q)
   | ProperList [Sym "unquote"; uq] ->
@@ -149,6 +150,7 @@ let rec convert<'A, 'B when 'A :> CodeOrData
   | Prim p -> Prim p
   | Cons(a, b) -> Cons(convert<'A, 'B> a, convert<'A, 'B> b)
   | Lambda(e, a, d, b) -> Lambda(e, a, d, b)
+  | Macro(e, a, d, b) -> Macro(e, a, d, b)
 
 /// Convert a Code Expr into a Data Expr
 let inline codeToData expr = convert<Code, Data> expr

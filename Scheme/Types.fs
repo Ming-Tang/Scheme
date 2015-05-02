@@ -25,6 +25,7 @@ type 'CorD Expr when 'CorD :> CodeOrData =
 | Prim of string
 | Cons of Expr<'CorD> * Expr<'CorD>
 | Lambda of env: Env * args: string list * dot: string option * body: Code Expr
+| Macro of env: Env * args: string list * dot: string option * body: Code Expr
 /// An environment contains a symbol table, and a pointer to parent scope
 and [<ReferenceEquality>] Env = {
   Symbols : SymbolTable
