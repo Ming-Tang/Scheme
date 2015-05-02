@@ -9,6 +9,14 @@
 (define (void . xs) nil)
 (define (list . xs) xs)
 
+;; Symbols
+
+(define gensym
+  (let ([counter 1000])
+    (lambda ()
+      (set! counter (add1 counter))
+      (string->symbol (string-append ":G" (number->string counter))))))
+
 ;; Function manipulation
 
 (define (id x) x)
