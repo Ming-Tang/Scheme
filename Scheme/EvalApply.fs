@@ -13,8 +13,8 @@ module Eval =
     let (|SelfEvaluating|_|) expr =
       match expr with
       | False | True | Int _ | Real _ | Str _
-      | Lambda(_, _, _, _) -> Some(Expr.codeToData expr)
-      | Macro _ | Prim _ | Sym _ | Cons _ | Nil  -> None
+      | Lambda _ | Macro _ | Prim _ -> Some(Expr.codeToData expr)
+      | Sym _ | Cons _ | Nil  -> None
 
     let (|RuleMatch|_|) expr =
       match expr with
@@ -56,6 +56,11 @@ module Eval =
 
       matchArgs' 0 Map.empty argNames args
 
+    let evalFunc (env, argNames, rest, body) args eval =
+      let argMap = matchArgs (argNames, rest) args
+      let env' = Env.extend argMap env
+      eval env' body
+
     let rec eval env expr =
       match expr with
       | SelfEvaluating expr -> expr
@@ -69,9 +74,11 @@ module Eval =
       let args = List.map (eval env) args
       match func with
       | Lambda(env, argNames, rest, body) ->
-        let argMap = matchArgs (argNames, rest) args
-        let env' = Env.extend argMap env
-        eval env' body
+        evalFunc (env, argNames, rest, body) args eval
+      | Macro(env, argNames, rest, body) ->
+        let res = evalFunc (env, argNames, rest, body) args eval
+        eval env <| dataToCode res
+
       | Prim prim -> prims.[prim] args
       | _ -> failwithf "Not a function: %s" (Expr.format func)
 
