@@ -13,6 +13,9 @@ let Quote xs = ProperList [Sym "quote"; xs]
 /// Unquote an expr
 let Unquote xs = ProperList [Sym "unquote"; xs]
 
+let translation f : EvalRule = fun eval env args ->
+  f args |> eval env
+
 let evalBegin : EvalRule = fun eval env args ->
   List.fold (fun _ b -> eval env b) Nil args
 
@@ -23,7 +26,7 @@ let evalIf : EvalRule = fun eval env (Args3 (Eval eval env cond,
   | IsFalse -> eval env right
 
 let evalLambda : EvalRule =
-  fun eval env (ConsOnly(argFormat, Body body)) ->
+  fun eval env (Args1OrMore(argFormat, Body body)) ->
     match argFormat with
     | ProperImproperList(SymList args, None) ->
       Lambda(env, args, None, body)
@@ -45,8 +48,22 @@ let rec evalDefine : EvalRule = fun eval env args ->
   | _ -> failwithf "Must be in the form of (define var value) %s"
                    "or (define (func args...) body...)."
 
-let evalApply : EvalRule = fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
-  eval env (Cons(f, dataToCode (list (List.map Quote xs))))
+let evalDefineMacro : EvalRule = fun eval env args ->
+  match args with
+  | Cons(Sym name, args) :: Body body ->
+    let (LambdaOnly(e, a, d, b)) = evalLambda eval env [args; body]
+    let macro = Macro(e, a, d, b)
+    Env.var name macro env
+    Nil
+  | _ -> failwith "Invalid define-macro form."
+
+let evalApplyMacro : EvalRule =
+  translation <| fun (Args1OrMore(macro, args)) ->
+    Cons(macro, list args)
+
+let evalApply : EvalRule =
+  fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
+    eval env (Cons(f, dataToCode (list (List.map Quote xs))))
 
 let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
                                               Eval eval env value)) ->
@@ -79,9 +96,6 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
       Cons(evalQQ n a, evalQQ n b)
     | _ -> codeToData x
   evalQQ 0 x
-
-let translation f : EvalRule = fun eval env args ->
-  f args |> eval env
 
 let (|CondList|) xs =
   let rec parse cs xs =
@@ -127,7 +141,7 @@ let evalCond : EvalRule =
   List.foldBack (fun (a, b) c -> if' a b c) cases elsePart
 
 let evalCase : EvalRule =
-  fun eval env (ConsOnly(Eval eval env value, CondList(cases, els))) ->
+  fun eval env (Args1OrMore(Eval eval env value, CondList(cases, els))) ->
   let rec evalCases cases =
     match cases with
     | [] ->
@@ -152,19 +166,19 @@ let (|BindingList|) (ProperListOnly pairs) =
     | _ -> failwith "Invalid binding list.")
 
 let evalLet : EvalRule =
-  translation <| fun (ConsOnly(BindingList bindings, Body body)) ->
+  translation <| fun (Args1OrMore(BindingList bindings, Body body)) ->
   let vars, vals = List.unzip bindings
   Cons(lambda (list (List.map Sym vars)) body,
        list vals)
 
 let evalLetStar : EvalRule =
-  translation <| fun (ConsOnly(BindingList bindings, Body body)) ->
+  translation <| fun (Args1OrMore(BindingList bindings, Body body)) ->
   List.foldBack (fun (var, expr) body ->
     Cons(lambda (list [Sym var]) body, list [expr])
   ) bindings body
 
 let evalLetRec : EvalRule =
-  translation <| fun (ConsOnly(BindingList bindings, Body body)) ->
+  translation <| fun (Args1OrMore(BindingList bindings, Body body)) ->
   let vars, vals = List.unzip bindings
   let placeholders = List.map (fun _ -> Quote Nil) bindings
   let assignments =
@@ -175,7 +189,8 @@ let evalLetRec : EvalRule =
   Cons(lambda (list (List.map Sym vars)) body',
        list placeholders)
 
-let evalLocal : EvalRule = fun eval env (ConsOnly(ProperListOnly defs, Body body)) ->
+let evalLocal : EvalRule =
+  fun eval env (Args1OrMore(ProperListOnly defs, Body body)) ->
   let local = Env.extend Map.empty env
   for def in defs do
     match def with
@@ -202,6 +217,8 @@ let standardRules =
 
     "lambda", evalLambda
     "define", evalDefine
+    "define-macro", evalDefineMacro
+    "apply-macro", evalApplyMacro
     "*apply", evalApply
 
     "set!", evalSet

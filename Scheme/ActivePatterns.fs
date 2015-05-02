@@ -39,10 +39,15 @@ let (|Args2OrMore|) args =
   | [] | [_] -> expectingMoreArgs 2 args
   | xs -> xs
 
-let (|ConsOnly|) args =
+let (|Args1OrMore|) args =
   match args with
   | [] -> failwith "Expecting an non-empty list."
   | x :: xs -> x, xs
+
+let (|ConsOnly|) expr =
+  match expr with
+  | Cons(a, b) -> a, b
+  | _ -> failwith "Expecting a cons."
 
 let (|ProperListOnly|) args =
   match args with
