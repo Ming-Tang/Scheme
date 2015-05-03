@@ -75,8 +75,8 @@ module Eval =
       match func with
       | Lambda(env, argNames, rest, body) ->
         evalFunc (env, argNames, rest, body) args eval
-      | Macro(env, argNames, rest, body) ->
-        let res = evalFunc (env, argNames, rest, body) args eval
+      | Macro(env', argNames, rest, body) ->
+        let res = evalFunc (env', argNames, rest, body) args eval
         eval env <| dataToCode res
 
       | Prim prim -> prims.[prim] args

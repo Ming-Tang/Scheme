@@ -1,8 +1,8 @@
 (define-macro (unless p? a b)
-  `(if (,not ,p?) a b))
+  `(if (,not ,p?) ,a ,b))
 
 (define-macro (unless-1 p? a b)
-  `(if (not ,p?) a b))
+  `(if (not ,p?) ,a ,b))
 
 (define-macro (behave-as-begin! f)
   (let ([body (list 'quasiquote '(begin xs))])
@@ -10,9 +10,9 @@
 
 (define-macro (swap! a b)
   (let ([temp (gensym)])
-    `(let [,temp b]
-       (set! b a)
-       (set! a ,temp))))
+    `(let [,temp ,b]
+       (set! ,b ,a)
+       (set! ,a ,temp))))
 
 (define x 5)
 
