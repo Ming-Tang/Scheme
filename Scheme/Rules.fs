@@ -190,7 +190,10 @@ let evalLocal : EvalRule =
   let local = Env.extend Map.empty env
   for def in defs do
     match def with
-    | ProperList (Sym "define" :: rest) -> evalDefine eval local rest |> ignore
+    | ProperList (Sym "define" :: rest) ->
+      evalDefine eval local rest |> ignore
+    | ProperList (Sym "define-macro" :: rest) ->
+      evalDefineMacro eval local rest |> ignore
     | _ -> failwith "Not a define in local body"
   eval local body
 

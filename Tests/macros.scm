@@ -10,7 +10,7 @@
 
 (define-macro (swap! a b)
   (let ([temp (gensym)])
-    `(let [,temp ,b]
+    `(let ([,temp ,b])
        (set! ,b ,a)
        (set! ,a ,temp))))
 
@@ -47,12 +47,4 @@
     (swap! temp temp1)
     (list temp temp1))
   (list 456 123))
-
-(check-expect
-  (let ([temp 123]
-        [temp1 456]
-        [set! list])
-    (swap! temp temp1)
-    (list temp temp1))
-  (list 123 456))
 
