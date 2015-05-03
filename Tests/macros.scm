@@ -5,8 +5,7 @@
   `(if (not ,p?) ,a ,b))
 
 (define-macro (behave-as-begin! f)
-  (let ([body (list 'quasiquote '(begin xs))])
-    `(define-macro (,f . xs) ,body)))
+  `(define-macro (,f . xs ) `(begin ,@xs)))
 
 (define-macro (swap! a b)
   (let ([temp (gensym)])
