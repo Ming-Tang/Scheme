@@ -57,10 +57,6 @@ let evalDefineMacro : EvalRule = fun eval env args ->
     Nil
   | _ -> failwith "Invalid define-macro form."
 
-let evalApplyMacro : EvalRule =
-  translation <| fun (Args1OrMore(macro, args)) ->
-    Cons(macro, list args)
-
 let evalApply : EvalRule =
   fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
     eval env (Cons(f, dataToCode (list (List.map Quote xs))))
@@ -217,9 +213,9 @@ let standardRules =
 
     "lambda", evalLambda
     "define", evalDefine
-    "define-macro", evalDefineMacro
-    "apply-macro", evalApplyMacro
     "*apply", evalApply
+    // TODO macro-lambda
+    "define-macro", evalDefineMacro
 
     "set!", evalSet
     "unset!", evalUnset
