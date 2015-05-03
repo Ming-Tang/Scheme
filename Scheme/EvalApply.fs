@@ -13,8 +13,8 @@ module Eval =
     let (|SelfEvaluating|_|) expr =
       match expr with
       | False | True | Int _ | Real _ | Str _
-      | Lambda(_, _, _, _) -> Some(Expr.codeToData expr)
-      | Prim _ | Sym _ | Cons _ | Nil  -> None
+      | Lambda _ | Macro _ | Prim _ -> Some(Expr.codeToData expr)
+      | Sym _ | Cons _ | Nil  -> None
 
     let (|RuleMatch|_|) expr =
       match expr with
@@ -56,23 +56,30 @@ module Eval =
 
       matchArgs' 0 Map.empty argNames args
 
+    let setupFunc (env, argNames, rest, body) args =
+      let argMap = matchArgs (argNames, rest) args
+      let env' = Env.extend argMap env
+      env', body
+
     let rec eval env expr =
       match expr with
       | SelfEvaluating expr -> expr
       | Sym x -> lookup env x
-      | RuleMatch (name, args, rule) -> rule eval env args
-      | Apply (func, args) -> apply env func args
+      | RuleMatch(name, args, rule) -> rule eval env args
+      | Apply(func, args) -> apply env func args
       | _ -> failwithf "Invalid expression: %s" (Expr.format expr)
 
     and apply env func args =
-      let func = eval env func
-      let args = List.map (eval env) args
-      match func with
-      | Lambda(env, argNames, rest, body) ->
-        let argMap = matchArgs (argNames, rest) args
-        let env' = Env.extend argMap env
-        eval env' body
-      | Prim prim -> prims.[prim] args
+      match eval env func with
+      | Lambda(env', argNames, rest, body) ->
+        let args = List.map (eval env) args
+        setupFunc (env', argNames, rest, body) args ||> eval
+      | Prim prim ->
+        prims.[prim] <| List.map (eval env) args
+      | Macro(env', argNames, rest, body) ->
+        let args = List.map codeToData args
+        let res = setupFunc (env', argNames, rest, body) args ||> eval
+        eval env <| dataToCode res
       | _ -> failwithf "Not a function: %s" (Expr.format func)
 
     eval env0 expr0

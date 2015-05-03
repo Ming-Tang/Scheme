@@ -138,6 +138,10 @@ let substring : Prim = fun (Args3(StrOnly s, IntOnly m, IntOnly n)) ->
 
 let stringToSymbol : Prim = fun (Args1(StrOnly s)) -> Sym s
 let symbolToString : Prim = fun (Args1(SymOnly s)) -> Str s
+let numberToString : Prim = numericUnOp' string string >> Str
+let stringToNumber : Prim = fun (Args1(StrOnly s)) ->
+  try int s |> Int
+  with :? System.FormatException -> float s |> Real
 
 // Logical Operators
 
@@ -327,6 +331,8 @@ let standardPrimitives : Primitives =
 
     "string->symbol", stringToSymbol
     "symbol->string", symbolToString
+    "number->string", numberToString
+    "string->number", stringToNumber
 
     "false?", not'
     "not", not'
