@@ -57,6 +57,13 @@ let evalDefineMacro : EvalRule = fun eval env args ->
     Nil
   | _ -> failwith "Invalid define-macro form."
 
+let evalDefineSyntax : EvalRule =
+  fun eval env (Args1 (ConsOnly(SymOnly name, rest))) ->
+    match name with
+    | "macro-transformer" -> evalDefineMacro eval env rest
+    | "syntax-rules" | _ ->
+      failwithf "Unsupported syntax transformer: %s" name
+
 let evalApply : EvalRule =
   fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
     eval env (Cons(f, dataToCode (list (List.map Quote xs))))
@@ -217,8 +224,8 @@ let standardRules =
     "lambda", evalLambda
     "define", evalDefine
     "*apply", evalApply
-    // TODO macro-lambda
     "define-macro", evalDefineMacro
+    "define-syntax", evalDefineSyntax
 
     "set!", evalSet
     "unset!", evalUnset
