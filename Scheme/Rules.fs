@@ -16,11 +16,11 @@ let Unquote xs = list [Sym "unquote"; xs]
 let translation f : EvalRule = fun eval env args ->
   f args |> eval env
 
-let defineForm name varForm funcForm =
+let defineForm name varForm funcForm args =
   match args with
   | [Sym var; value] ->
     varForm var value
-  | Cons(Sym func, ArgFormatOnly args) :: Body body ->
+  | Cons(Sym func, args) :: body ->
     funcForm func args body
   | _ ->
      failwithf "Must be in the form of (%s name value) %s" name
@@ -42,10 +42,11 @@ let evalLambda : EvalRule =
 
 let rec evalDefine : EvalRule = fun eval env args ->
   let var, value =
-    defineForm "define"
+    args |> defineForm "define"
       (fun var value -> var, eval env value)
-      (fun func args body -> var, evalLambda eval env [args; body])
+      (fun func args body -> func, evalLambda eval env (args :: body))
   Env.var var value env
+  Nil
 
 let evalDefineMacro : EvalRule = fun eval env args ->
   failwith "..."
@@ -211,7 +212,7 @@ let standardRules =
     "define", evalDefine
     "*apply", evalApply
     "define-macro", evalDefineMacro
-    "define-syntax", evalDefineSyntax
+    //"define-syntax", evalDefineSyntax
 
     "set!", evalSet
     "unset!", evalUnset
