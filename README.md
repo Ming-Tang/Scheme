@@ -18,7 +18,7 @@ Make sure everything in the SICP are runnable, except mutable `cons` need extra
 changes.
 
 - [X] Nested quasiquotes and unquote-splicing
-- [ ] `define-macro`, `gensym`: Add evaluation rules while running
+- [X] `define-macro`, `gensym`: Add evaluation rules while running
 - [X] `error`
 - [X] `cond`, `case`
 - [ ] `display`, `write`, `printf`, `newline`
