@@ -67,6 +67,15 @@ let (|SymList|_|) ss =
     | Sym s -> Some s
     | _ -> None)
 
+let (|ArgFormatOnly|) af =
+  match af with
+  | ProperImproperList(SymList args, None) ->
+    args, None
+  | ProperImproperList(SymList args, Some (Sym rest)) ->
+    args, Some rest
+  | _ -> failwith "Not an argument format. Must be a list of symbols %s"
+                  "or a list of symbols dot a symbol"
+
 let (|Eval|) (eval : Eval) env expr =
   eval env expr
 

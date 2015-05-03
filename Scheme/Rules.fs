@@ -5,16 +5,27 @@ open Scheme
 open Scheme.ActivePatterns
 
 /// Construct a (begin ...) block from a list of exprs
-let Begin xs = ProperList (Sym "begin" :: xs)
+let Begin xs = list (Sym "begin" :: xs)
 
 /// Quote an expr
-let Quote xs = ProperList [Sym "quote"; xs]
+let Quote xs = list [Sym "quote"; xs]
 
 /// Unquote an expr
-let Unquote xs = ProperList [Sym "unquote"; xs]
+let Unquote xs = list [Sym "unquote"; xs]
 
 let translation f : EvalRule = fun eval env args ->
   f args |> eval env
+
+let defineForm name varForm funcForm =
+  match args with
+  | [Sym var; value] ->
+    varForm var value
+  | Cons(Sym func, ArgFormatOnly args) :: Body body ->
+    funcForm func args body
+  | _ ->
+     failwithf "Must be in the form of (%s name value) %s" name
+       (sprintf "or (%s (name args...) body...)." name)
+
 
 let evalBegin : EvalRule = fun eval env args ->
   List.fold (fun _ b -> eval env b) Nil args
@@ -26,43 +37,18 @@ let evalIf : EvalRule = fun eval env (Args3 (Eval eval env cond,
   | IsFalse -> eval env right
 
 let evalLambda : EvalRule =
-  fun eval env (Args1OrMore(argFormat, Body body)) ->
-    match argFormat with
-    | ProperImproperList(SymList args, None) ->
-      Lambda(env, args, None, body)
-    | ProperImproperList(SymList args, Some (Sym rest)) ->
-      Lambda(env, args, Some rest, body)
-    | ProperImproperList(_, _) ->
-      failwithf "Incorrect argument format. Must be a list of symbols %s"
-                "or a list of symbols dot another symbol."
+  fun eval env (Args1OrMore(ArgFormatOnly(args, rest), Body body)) ->
+    Lambda(env, args, rest, body)
 
 let rec evalDefine : EvalRule = fun eval env args ->
-  match args with
-  | [Sym var; Eval eval env value] ->
-    Env.var var value env
-    Nil
-  | Cons(Sym func, args) :: Body body ->
-    let defineArgs : Code Expr list =
-      [Sym func; dataToCode (evalLambda eval env [args; body])]
-    evalDefine eval env defineArgs
-  | _ -> failwithf "Must be in the form of (define var value) %s"
-                   "or (define (func args...) body...)."
+  let var, value =
+    defineForm "define"
+      (fun var value -> var, eval env value)
+      (fun func args body -> var, evalLambda eval env [args; body])
+  Env.var var value env
 
 let evalDefineMacro : EvalRule = fun eval env args ->
-  match args with
-  | Cons(Sym name, args) :: Body body ->
-    let (LambdaOnly(e, a, d, b)) = evalLambda eval env [args; body]
-    let macro = Macro(e, a, d, b)
-    Env.var name macro env
-    Nil
-  | _ -> failwith "Invalid define-macro form."
-
-let evalDefineSyntax : EvalRule =
-  fun eval env (Args1 (ConsOnly(SymOnly name, rest))) ->
-    match name with
-    | "macro-transformer" -> evalDefineMacro eval env rest
-    | "syntax-rules" | _ ->
-      failwithf "Unsupported syntax transformer: %s" name
+  failwith "..."
 
 let evalApply : EvalRule =
   fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
