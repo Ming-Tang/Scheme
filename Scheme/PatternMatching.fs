@@ -1,25 +1,30 @@
 /// Parser for the syntax-rules pattern matching language
 module Scheme.PatternMatching
 open Scheme
+open Scheme.Expr
 open System
 
-type OptionBuilder() =
-  member inline o.Bind(x, f) = Option.bind f x
-  member inline o.Return(x) = Some(x)
-  member inline o.ReturnFrom(x) = x
+[<AutoOpen>]
+/// Module for the <c>option</c> computation expression
+module OptionBuilder =
+  type OptionBuilder() =
+    member inline o.Bind(x, f) = Option.bind f x
+    member inline o.Return(x) = Some(x)
+    member inline o.ReturnFrom(x) = x
 
-let option = OptionBuilder()
+  let option = OptionBuilder()
+  let guard p = if p then Some() else None
 
-let guard p = if p then Some() else None
-
-type Pattern =
+/// A define-syntax pattern
+type 'CorD Pattern when 'CorD :> CodeOrData =
 | Variable of varName: string
-| Literal of Data Expr
-| Proper of Pattern list
-| Improper of proper: Pattern list * improper: Pattern
-| Ellipsis of proper: Pattern list * binding: string
+| Literal of 'CorD Expr
+| Proper of 'CorD Pattern list
+| Improper of proper: 'CorD Pattern list * improper: 'CorD Pattern
+| Ellipsis of proper: 'CorD Pattern list * binding: string
 
-let private (|WithEllipsis|_|) xs =
+/// Match if a list of expressions end with an ellipsis pattern
+let (|WithEllipsis|_|) xs =
   let rec withEllipsis' xs acc =
     match xs with
     | [Sym x; Sym "..."] -> Some(acc, x)
@@ -75,7 +80,7 @@ let matchPattern pat expr =
   /// expression does not have enough elements compared to the list of
   /// patterns, the matching fails. If the list of patterns ran out,
   /// return rest of the expression
-  and matchList (pats : Pattern list) expr =
+  and matchList (pats : _ Pattern list) expr =
     match pats, expr with
     | p :: ps, Cons(x, xs) ->
       option {
@@ -116,4 +121,21 @@ let matchPattern pat expr =
     }
 
   matchPattern pat expr
+
+/// Given a list of (pattern, result) pairs, return the first pattern that matches
+/// the expression, and the bindings from the pattern
+let rec patternCase expr cases =
+  match cases with
+  | (pat, result) :: cases ->
+    match matchPattern pat expr with
+    | Some b -> Some((result : 'c), b)
+    | None -> patternCase expr cases
+  | [] -> None
+
+/// Given a list of (pattern, function) pairs and another function, call the function
+/// for the first pattern that match the expression. Or else call the else-function
+let patternCont expr patternConts elseCont =
+  match patternCase expr patternConts with
+  | Some(c, b) -> c b
+  | _ -> elseCont()
 
