@@ -33,6 +33,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Types.fs" />
     <Compile Include="Expr.fs" />
+    <Compile Include="PatternMatching.fs" />
     <Compile Include="Env.fs" />
     <Compile Include="EvalApply.fs" />
     <Compile Include="ActivePatterns.fs" />
