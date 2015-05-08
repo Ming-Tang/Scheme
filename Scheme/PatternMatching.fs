@@ -44,6 +44,7 @@ let rec parsePattern syms expr =
     Improper(List.map parsePattern' xs, parsePattern' y)
   | Sym sym when Set.contains sym syms -> Literal expr
   | Sym var -> Variable var
+  | Int _ | Real _ | Str _ -> Literal expr
   | _ -> failwith "Invalid pattern expression."
 
 /// Match an expression against a pattern. Returns None if pattern matching
