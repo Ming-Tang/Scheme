@@ -3,6 +3,7 @@ open System
 open System.Collections.Generic
 open Scheme
 open Scheme.ActivePatterns
+open Scheme.PatternMatching
 
 /// Construct a (begin ...) block from a list of exprs
 let Begin xs = ProperList (Sym "begin" :: xs)
@@ -61,6 +62,37 @@ let evalApply : EvalRule =
   fun eval env (Args2(f, Eval eval env (ProperListOnly xs))) ->
     eval env (Cons(f, dataToCode (list (List.map Quote xs))))
 
+let (|CondList|) xs =
+  let rec parse cs xs =
+    match xs with
+    | [] -> cs, None
+    | (ProperListOnly (Args2(a, b))) :: xs ->
+      match a, xs with
+      | Sym "else", [] -> cs, Some b
+      | Sym "else", _ -> failwith "else must be the last clause."
+      | _ -> parse (cs @ [a, b]) xs
+  parse [] xs
+
+let evalMatch : EvalRule =
+  fun eval env (Args1OrMore(expr, CondList (cases, elseCase))) ->
+  let value = eval env expr
+  let rec evalPats pats =
+    match pats with
+    | [] ->
+      match elseCase with
+      | None -> failwith "Pattern match cases exhausted."
+      | Some els -> eval env els
+    | (pat, expr) :: pats ->
+      match matchPattern pat value with
+      | Some bindings ->
+        let env' = Env.extend bindings env
+        eval env' expr
+      | None -> evalPats pats
+
+  let pats = cases |> List.map (fun (pat, expr) ->
+    codeToData pat |> parsePattern Set.empty, expr)
+  evalPats pats
+
 let evalSet : EvalRule = fun eval env (Args2 (SymOnly var,
                                               Eval eval env value)) ->
   Env.set var value env
@@ -92,17 +124,6 @@ let evalQuasiquote : EvalRule = fun eval env (Args1 x) ->
       Cons(evalQQ n a, evalQQ n b)
     | _ -> codeToData x
   evalQQ 0 x
-
-let (|CondList|) xs =
-  let rec parse cs xs =
-    match xs with
-    | [] -> cs, None
-    | (ProperListOnly (Args2(a, b))) :: xs ->
-      match a, xs with
-      | Sym "else", [] -> cs, Some b
-      | Sym "else", _ -> failwith "else must be the last clause."
-      | _ -> parse (cs @ [a, b]) xs
-  parse [] xs
 
 let evalError name : EvalRule = fun eval env args ->
   failwithf "Unexpected %s." name
@@ -219,6 +240,8 @@ let standardRules =
     "*apply", evalApply
     // TODO macro-lambda
     "define-macro", evalDefineMacro
+
+    "match", evalMatch
 
     "set!", evalSet
     "unset!", evalUnset
