@@ -62,9 +62,9 @@ let matchPattern pat expr =
   let mergeBindings a b =
     Map.fold (fun m k v -> addBinding k v m) a b
 
-  let isNonEmptyProperList xs =
+  let isProperList xs =
     match xs with
-    | ProperList (_ :: _) -> true
+    | ProperList _ -> true
     | _ -> false
 
   /// Match a pattern against an expression
@@ -116,7 +116,7 @@ let matchPattern pat expr =
   and matchEllipsis (xs, e) expr =
     option {
       let! b, r = matchList xs expr
-      do! guard (isNonEmptyProperList r)
+      do! guard (isProperList r)
       let! bi = matchPattern (Variable e) r
       return mergeBindings b bi
     }

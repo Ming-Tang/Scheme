@@ -59,14 +59,6 @@
     [else '()])
   '())
 
-;; Moving average of three points
-(define (3avg xs)
-  (match xs
-    [(a b c d ...)
-     (cons (/ (+ a b c) 3.0)
-           (3avg `(,b ,c . ,d)))]
-    [else '()]))
-
 ;; Is association list?
 (define (is-assoc? xs)
   (match xs
@@ -74,10 +66,6 @@
     [((a b) c ...)
      (is-assoc? c)]
     [else #f]))
-
-(check-expect
-  (3avg '(1 2 3 4 5))
-  '(2 3 4))
 
 (check-expect (is-assoc? '()) #t)
 (check-expect (is-assoc? '(1 2)) #f)

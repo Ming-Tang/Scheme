@@ -80,7 +80,7 @@ let evalMatch : EvalRule =
     match pats with
     | [] ->
       match elseCase with
-      | None -> Nil
+      | None -> failwith "Pattern match cases exhausted."
       | Some els -> eval env els
     | (pat, expr) :: pats ->
       match matchPattern pat value with
